@@ -2,620 +2,343 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>VehicleChain — Blockchain Vehicle Registry</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>VehicleChain — Blockchain Vehicle Registry DApp</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/web3@4.3.0/dist/web3.min.js"></script>
+<!-- Web3.js loaded SYNCHRONOUSLY before any script -->
+<script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
 <style>
-/* ── RESET ── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{
-  font-family:'Outfit',system-ui,sans-serif;
-  background:#06070f;
-  color:#f1f5f9;
-  min-height:100vh;
-  overflow-x:hidden;
-  line-height:1.5;
-}
-button{font-family:inherit;cursor:pointer;border:none}
+body{font-family:'Outfit',system-ui,sans-serif;background:#06070f;color:#f1f5f9;min-height:100vh;overflow-x:hidden;line-height:1.5}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
 input{font-family:inherit}
 a{text-decoration:none;color:inherit}
-img{display:block}
-
-/* ── VARIABLES ── */
 :root{
-  --amber:#f59e0b;
-  --amber2:#fbbf24;
-  --orange:#ea580c;
-  --blue:#3b82f6;
-  --green:#10b981;
-  --cyan:#06b6d4;
-  --red:#ef4444;
-  --purple:#8b5cf6;
-  --border:rgba(255,255,255,0.08);
-  --border2:rgba(255,255,255,0.14);
-  --card:rgba(255,255,255,0.04);
-  --muted:#64748b;
-  --sub:#94a3b8;
-  --g-amber:linear-gradient(135deg,#f59e0b,#ea580c);
-  --g-blue:linear-gradient(135deg,#3b82f6,#8b5cf6);
-  --g-green:linear-gradient(135deg,#10b981,#06b6d4);
+  --am:#f59e0b;--am2:#fbbf24;--or:#ea580c;
+  --bl:#3b82f6;--gr:#10b981;--cy:#06b6d4;--rd:#ef4444;--pu:#8b5cf6;
+  --bd:rgba(255,255,255,.08);--bd2:rgba(255,255,255,.14);
+  --card:rgba(255,255,255,.04);--mu:#64748b;--su:#94a3b8;
+  --gam:linear-gradient(135deg,#f59e0b,#ea580c);
+  --gbl:linear-gradient(135deg,#3b82f6,#8b5cf6);
+  --ggr:linear-gradient(135deg,#10b981,#06b6d4);
 }
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:rgba(245,158,11,.3);border-radius:3px}
 
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(245,158,11,0.3);border-radius:3px}
-
-/* ── BG ORBS ── */
+/* BG */
 .bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-.orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:.12;animation:drift 18s ease-in-out infinite}
-.o1{width:700px;height:700px;background:radial-gradient(#f59e0b,#ea580c);top:-300px;left:-200px}
-.o2{width:550px;height:550px;background:radial-gradient(#3b82f6,#8b5cf6);bottom:-250px;right:-150px;animation-delay:-7s}
-.o3{width:380px;height:380px;background:radial-gradient(#10b981,#06b6d4);top:40%;left:50%;animation-delay:-13s}
-@keyframes drift{0%,100%{transform:translate(0,0)}33%{transform:translate(40px,-50px)}66%{transform:translate(-30px,35px)}}
+.orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:.11;animation:drift 18s ease-in-out infinite}
+.o1{width:650px;height:650px;background:radial-gradient(#f59e0b,#ea580c);top:-280px;left:-180px}
+.o2{width:500px;height:500px;background:radial-gradient(#3b82f6,#8b5cf6);bottom:-220px;right:-120px;animation-delay:-7s}
+.o3{width:350px;height:350px;background:radial-gradient(#10b981,#06b6d4);top:45%;left:55%;animation-delay:-13s}
+@keyframes drift{0%,100%{transform:translate(0,0)}33%{transform:translate(35px,-45px)}66%{transform:translate(-25px,30px)}}
 
-/* ── TOAST ── */
-#toasts{position:fixed;top:80px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none}
-.toast{
-  display:flex;align-items:flex-start;gap:10px;
-  padding:14px 18px;
-  background:rgba(8,10,24,.97);
-  border:1px solid var(--border2);
-  border-radius:14px;
-  backdrop-filter:blur(16px);
-  box-shadow:0 10px 40px rgba(0,0,0,.6);
-  min-width:260px;max-width:360px;
-  pointer-events:all;cursor:pointer;
-  animation:tin .4s cubic-bezier(.34,1.56,.64,1);
-}
+/* TOASTS */
+#toasts{position:fixed;top:78px;right:18px;z-index:9999;display:flex;flex-direction:column;gap:9px;pointer-events:none;width:340px}
+.toast{display:flex;align-items:flex-start;gap:10px;padding:13px 16px;background:rgba(6,7,15,.97);border:1px solid var(--bd2);border-radius:13px;backdrop-filter:blur(16px);box-shadow:0 8px 32px rgba(0,0,0,.6);pointer-events:all;cursor:pointer;animation:tin .4s cubic-bezier(.34,1.56,.64,1)}
 @keyframes tin{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
 .toast.out{animation:tout .3s ease forwards}
 @keyframes tout{to{opacity:0;transform:translateX(110%)}}
-.toast .ti{font-size:20px;flex-shrink:0}
-.toast .tt{font-size:14px;font-weight:700;margin-bottom:2px}
-.toast .tm{font-size:12px;color:var(--sub);word-break:break-all}
-.toast.success{border-color:rgba(16,185,129,.35)}.toast.success .tt{color:var(--green)}
-.toast.error  {border-color:rgba(239,68,68,.35)}.toast.error   .tt{color:var(--red)}
-.toast.warning{border-color:rgba(245,158,11,.35)}.toast.warning .tt{color:var(--amber)}
-.toast.info   {border-color:rgba(59,130,246,.35)}.toast.info    .tt{color:var(--blue)}
+.ti{font-size:19px;flex-shrink:0;margin-top:1px}
+.tt{font-size:13px;font-weight:700;margin-bottom:2px}
+.tm{font-size:12px;color:var(--su);word-break:break-all;line-height:1.4}
+.toast.success{border-color:rgba(16,185,129,.3)}.toast.success .tt{color:var(--gr)}
+.toast.error{border-color:rgba(239,68,68,.3)}.toast.error .tt{color:var(--rd)}
+.toast.warning{border-color:rgba(245,158,11,.3)}.toast.warning .tt{color:var(--am)}
+.toast.info{border-color:rgba(59,130,246,.3)}.toast.info .tt{color:var(--bl)}
 
-/* ── MODAL ── */
-.modal-bg{
-  position:fixed;inset:0;z-index:800;
-  background:rgba(0,0,0,.78);
-  backdrop-filter:blur(8px);
-  display:flex;align-items:center;justify-content:center;
-  padding:20px;
-  opacity:0;pointer-events:none;
-  transition:opacity .3s;
-}
-.modal-bg.open{opacity:1;pointer-events:all}
-.modal{
-  width:100%;max-width:480px;
-  background:#08090f;
-  border:1px solid var(--border2);
-  border-radius:28px;
-  box-shadow:0 40px 100px rgba(0,0,0,.7);
-  transform:translateY(30px) scale(.97);
-  transition:transform .35s cubic-bezier(.34,1.56,.64,1);
-  overflow:hidden;
-}
-.modal-bg.open .modal{transform:translateY(0) scale(1)}
-.modal-head{
-  display:flex;align-items:center;gap:12px;
-  padding:24px 24px 0;
-}
-.modal-head-icon{font-size:28px}
-.modal-head-txt h3{font-size:20px;font-weight:800;letter-spacing:-.4px}
-.modal-head-txt p{font-size:13px;color:var(--muted);margin-top:2px}
-.modal-x{
-  margin-left:auto;width:34px;height:34px;border-radius:50%;
-  background:rgba(255,255,255,.06);border:1px solid var(--border);
-  color:var(--sub);font-size:16px;
-  display:flex;align-items:center;justify-content:center;
-  transition:.2s;flex-shrink:0;
-}
-.modal-x:hover{background:rgba(255,255,255,.12);color:#fff}
-.modal-body{padding:20px 24px 28px}
-.modal-vcard{
-  display:flex;align-items:center;gap:12px;
-  padding:12px 14px;
-  background:rgba(245,158,11,.07);
-  border:1px solid rgba(245,158,11,.18);
-  border-radius:12px;margin-bottom:20px;
-}
-.modal-vcard .em{font-size:36px}
-.modal-vcard .name{font-size:15px;font-weight:700}
-.modal-vcard .meta{font-size:12px;color:var(--muted)}
+/* MODAL */
+.mbg{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s}
+.mbg.open{opacity:1;pointer-events:all}
+.mbox{width:100%;max-width:470px;background:#070810;border:1px solid var(--bd2);border-radius:26px;box-shadow:0 40px 90px rgba(0,0,0,.7);transform:translateY(28px) scale(.97);transition:transform .35s cubic-bezier(.34,1.56,.64,1);overflow:hidden}
+.mbg.open .mbox{transform:translateY(0) scale(1)}
+.mhead{display:flex;align-items:center;gap:11px;padding:22px 22px 0}
+.mhead-icon{font-size:26px}
+.mhead h3{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.mhead p{font-size:12px;color:var(--mu);margin-top:2px}
+.mx{margin-left:auto;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid var(--bd);color:var(--su);font-size:15px;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.mx:hover{background:rgba(255,255,255,.12);color:#fff}
+.mbody{padding:18px 22px 26px}
+.mvc{display:flex;align-items:center;gap:11px;padding:11px 13px;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.18);border-radius:11px;margin-bottom:18px}
+.mvc .em{font-size:34px}
+.mvc .vn{font-size:14px;font-weight:700}
+.mvc .vm{font-size:12px;color:var(--mu)}
 
-/* ── NAVBAR ── */
-nav{
-  position:sticky;top:0;z-index:500;
-  display:flex;align-items:center;
-  height:66px;padding:0 40px;
-  background:rgba(6,7,15,.88);
-  backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--border);
-}
-.logo{display:flex;align-items:center;gap:10px}
-.logo-mark{
-  width:38px;height:38px;background:var(--g-amber);
-  border-radius:9px;display:flex;align-items:center;justify-content:center;
-  font-size:18px;box-shadow:0 4px 16px rgba(245,158,11,.35);flex-shrink:0;
-}
-.logo-name{font-size:17px;font-weight:800;letter-spacing:-.4px}
-.logo-name em{color:var(--amber);font-style:normal}
-.nav-links{display:flex;gap:2px;margin-left:40px}
-.nav-link{
-  padding:7px 14px;border-radius:8px;
-  font-size:14px;font-weight:500;color:var(--muted);
-  background:none;border:none;
-  transition:.2s;
-}
-.nav-link:hover{color:#fff;background:rgba(255,255,255,.05)}
-.nav-r{display:flex;align-items:center;gap:10px;margin-left:auto}
-.net-pill{
-  display:flex;align-items:center;gap:6px;
-  padding:5px 12px;
-  background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.22);
-  border-radius:50px;font-size:12px;font-weight:600;color:var(--green);
-}
-.net-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 2s ease-in-out infinite}
+/* NAV */
+nav{position:sticky;top:0;z-index:500;display:flex;align-items:center;height:64px;padding:0 36px;background:rgba(6,7,15,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd)}
+.logo{display:flex;align-items:center;gap:9px}
+.lmark{width:36px;height:36px;background:var(--gam);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 4px 14px rgba(245,158,11,.35);flex-shrink:0}
+.lname{font-size:16px;font-weight:800;letter-spacing:-.4px}
+.lname em{color:var(--am);font-style:normal}
+.nlinks{display:flex;gap:2px;margin-left:32px}
+.nl{padding:6px 13px;border-radius:7px;font-size:13px;font-weight:500;color:var(--mu);transition:.2s}
+.nl:hover{color:#fff;background:rgba(255,255,255,.05)}
+.nr{display:flex;align-items:center;gap:9px;margin-left:auto}
+.npill{display:flex;align-items:center;gap:5px;padding:4px 11px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.22);border-radius:50px;font-size:11px;font-weight:600;color:var(--gr)}
+.ndot{width:5px;height:5px;background:var(--gr);border-radius:50%;animation:blink 2s ease-in-out infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-#admin-tag{
-  display:none;align-items:center;gap:5px;
-  padding:5px 12px;
-  background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);
-  border-radius:50px;font-size:12px;font-weight:700;color:var(--amber);
-}
-#btn-connect{
-  display:flex;align-items:center;gap:7px;
-  padding:9px 20px;background:var(--g-amber);border-radius:8px;
-  color:#000;font-size:14px;font-weight:700;
-  box-shadow:0 4px 20px rgba(245,158,11,.35);
-  transition:.2s;
-}
-#btn-connect:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(245,158,11,.5)}
-#wallet-display{
-  display:none;align-items:center;gap:8px;
-  padding:7px 14px;
-  background:var(--card);border:1px solid var(--border2);
-  border-radius:50px;
-}
-.wallet-orb{width:22px;height:22px;border-radius:50%;background:var(--g-amber);flex-shrink:0}
-#wallet-addr{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--sub)}
+#admin-tag{display:none;align-items:center;gap:5px;padding:4px 11px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:50px;font-size:11px;font-weight:700;color:var(--am)}
+#btn-connect{display:flex;align-items:center;gap:7px;padding:8px 18px;background:var(--gam);border-radius:8px;color:#000;font-size:13px;font-weight:700;box-shadow:0 4px 18px rgba(245,158,11,.32);transition:.2s}
+#btn-connect:hover{transform:translateY(-2px);box-shadow:0 7px 26px rgba(245,158,11,.48)}
+#btn-connect:disabled{opacity:.6;cursor:not-allowed;transform:none}
+#wdisplay{display:none;align-items:center;gap:7px;padding:6px 13px;background:var(--card);border:1px solid var(--bd2);border-radius:50px}
+.worb{width:20px;height:20px;border-radius:50%;background:var(--gam);flex-shrink:0}
+#waddr{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--su)}
 
-/* ── HERO ── */
-.hero{
-  position:relative;min-height:calc(100vh - 66px);
-  display:flex;align-items:center;overflow:hidden;
+/* DEMO BANNER */
+#demo-banner{
+  background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(234,88,12,.08));
+  border-bottom:1px solid rgba(245,158,11,.2);
+  padding:10px 36px;
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;color:var(--am2);
 }
-.hero-glow{
-  position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(ellipse 65% 55% at 62% 50%,rgba(245,158,11,.065) 0%,transparent 70%);
-}
-/* Animated streaks */
+#demo-banner strong{font-weight:700}
+
+/* HERO */
+.hero{position:relative;min-height:calc(100vh - 64px);display:flex;align-items:center;overflow:hidden}
+.hglow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 65% 55% at 62% 50%,rgba(245,158,11,.065),transparent 70%)}
 .streaks{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.streak{
-  position:absolute;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(245,158,11,.22),transparent);
-  animation:streak 5s linear infinite;
-}
-.streak:nth-child(1){width:55%;top:22%;left:45%;animation-delay:0s}
-.streak:nth-child(2){width:45%;top:42%;left:50%;animation-delay:-2s;animation-duration:4s}
-.streak:nth-child(3){width:60%;top:65%;left:40%;animation-delay:-3.5s;animation-duration:6s}
-.streak:nth-child(4){width:40%;top:78%;left:55%;animation-delay:-1s;animation-duration:4.5s}
-@keyframes streak{0%{opacity:0;transform:translateX(-20%)}15%{opacity:1}85%{opacity:1}100%{opacity:0;transform:translateX(20%)}}
+.sk{position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgba(245,158,11,.2),transparent);animation:sk 5s linear infinite}
+.sk:nth-child(1){width:55%;top:22%;left:45%}
+.sk:nth-child(2){width:45%;top:42%;left:50%;animation-delay:-2s;animation-duration:4s}
+.sk:nth-child(3){width:60%;top:65%;left:40%;animation-delay:-3.5s;animation-duration:6s}
+.sk:nth-child(4){width:40%;top:78%;left:55%;animation-delay:-1s;animation-duration:4.5s}
+@keyframes sk{0%{opacity:0;transform:translateX(-20%)}15%{opacity:1}85%{opacity:1}100%{opacity:0;transform:translateX(20%)}}
 
-/* Hero two-column flex */
-.hero-inner{
-  position:relative;z-index:2;
-  width:100%;max-width:1200px;
-  margin:0 auto;padding:80px 48px;
-  display:flex;flex-direction:row;
-  align-items:center;gap:60px;
-}
-.hero-left{flex:1;min-width:0}
-.hero-right{flex:0 0 400px;display:flex;align-items:center;justify-content:center}
+.hi{position:relative;z-index:2;width:100%;max-width:1180px;margin:0 auto;padding:70px 40px;display:flex;flex-direction:row;align-items:center;gap:56px}
+.hl{flex:1;min-width:0}
+.hr{flex:0 0 380px;display:flex;align-items:center;justify-content:center}
 
-.badge{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:5px 14px;
-  background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);
-  border-radius:50px;font-size:11px;font-weight:700;color:var(--amber);
-  letter-spacing:1px;text-transform:uppercase;margin-bottom:24px;
-}
-.badge-dot{width:6px;height:6px;background:var(--amber);border-radius:50%;animation:blink 1.5s ease-in-out infinite}
+.hbadge{display:inline-flex;align-items:center;gap:6px;padding:4px 13px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:50px;font-size:10px;font-weight:700;color:var(--am);letter-spacing:1px;text-transform:uppercase;margin-bottom:22px}
+.hbdot{width:5px;height:5px;background:var(--am);border-radius:50%;animation:blink 1.5s ease-in-out infinite}
+h1{font-size:clamp(32px,4.5vw,56px);font-weight:900;line-height:1.08;letter-spacing:-2px;margin-bottom:16px}
+.am-txt{background:var(--gam);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hdesc{font-size:15px;color:var(--su);line-height:1.75;max-width:480px;margin-bottom:30px}
+.hbtns{display:flex;flex-direction:row;gap:11px;flex-wrap:wrap}
+.hbtn{display:inline-flex;align-items:center;gap:7px;padding:13px 28px;border-radius:11px;font-size:14px;font-weight:700;transition:.25s}
+.hbtn.p{background:var(--gam);color:#000;box-shadow:0 4px 22px rgba(245,158,11,.36)}
+.hbtn.p:hover{transform:translateY(-3px);box-shadow:0 9px 32px rgba(245,158,11,.5)}
+.hbtn.o{background:rgba(255,255,255,.05);border:1px solid var(--bd2);color:#f1f5f9}
+.hbtn.o:hover{background:rgba(255,255,255,.09);transform:translateY(-2px)}
 
-h1.hero-h1{
-  font-size:clamp(34px,4.5vw,58px);
-  font-weight:900;line-height:1.08;
-  letter-spacing:-2px;margin-bottom:18px;
-}
-.amber-txt{
-  background:var(--g-amber);
-  -webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;
-}
-.hero-desc{
-  font-size:16px;color:var(--sub);
-  line-height:1.75;max-width:500px;margin-bottom:34px;
-}
-.hero-btns{display:flex;flex-direction:row;gap:12px;flex-wrap:wrap}
-.btn-hero{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:14px 30px;border-radius:12px;
-  font-size:15px;font-weight:700;
-  transition:.25s;
-}
-.btn-hero.primary{
-  background:var(--g-amber);color:#000;
-  box-shadow:0 4px 24px rgba(245,158,11,.38);
-}
-.btn-hero.primary:hover{transform:translateY(-3px);box-shadow:0 10px 36px rgba(245,158,11,.52)}
-.btn-hero.outline{
-  background:rgba(255,255,255,.05);
-  border:1px solid var(--border2);color:#f1f5f9;
-}
-.btn-hero.outline:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.22);transform:translateY(-2px)}
+/* Stats row */
+.hstats{display:flex;flex-direction:row;align-items:stretch;margin-top:40px;padding-top:24px;border-top:1px solid var(--bd)}
+.hs{flex:1;text-align:center;padding:0 8px}
+.hs+.hs{border-left:1px solid var(--bd)}
+.hsn{display:block;font-size:26px;font-weight:900;letter-spacing:-1px;background:var(--gam);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1}
+.hsl{display:block;font-size:10px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.8px;margin-top:3px}
 
-/* Stats */
-.hero-stats{
-  display:flex;flex-direction:row;
-  align-items:stretch;
-  margin-top:44px;padding-top:28px;
-  border-top:1px solid var(--border);
-  gap:0;
-}
-.stat{flex:1;text-align:center;padding:0 12px}
-.stat+.stat{border-left:1px solid var(--border)}
-.stat-n{
-  display:block;font-size:28px;font-weight:900;letter-spacing:-1px;
-  background:var(--g-amber);-webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;line-height:1.1;
-}
-.stat-l{display:block;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:4px}
+/* Car */
+.cw{position:relative;width:340px;height:340px;display:flex;align-items:center;justify-content:center}
+.ring{position:absolute;border-radius:50%;border:1px solid rgba(245,158,11,.13);animation:rp 4s ease-in-out infinite}
+.r1{width:320px;height:320px}
+.r2{width:240px;height:240px;border-color:rgba(245,158,11,.08);animation-delay:-2s}
+@keyframes rp{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.04);opacity:1}}
+.cglow{position:absolute;width:210px;height:210px;border-radius:50%;background:radial-gradient(rgba(245,158,11,.11),transparent 70%)}
+.cem{position:relative;z-index:2;font-size:115px;line-height:1;filter:drop-shadow(0 12px 32px rgba(245,158,11,.3));animation:fl 5s ease-in-out infinite;user-select:none}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+.csh{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);width:150px;height:13px;background:radial-gradient(ellipse,rgba(245,158,11,.25),transparent 70%);border-radius:50%;animation:sha 5s ease-in-out infinite}
+@keyframes sha{0%,100%{transform:translateX(-50%) scaleX(1);opacity:.65}50%{transform:translateX(-50%) scaleX(.6);opacity:.25}}
+.fb{position:absolute;display:flex;align-items:center;gap:8px;padding:9px 13px;background:rgba(6,7,15,.95);border:1px solid var(--bd2);border-radius:11px;backdrop-filter:blur(12px);z-index:3;animation:fl2 7s ease-in-out infinite}
+.fb1{top:18px;right:-8px}
+.fb2{bottom:46px;left:-8px;animation-delay:-3.5s}
+@keyframes fl2{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.fbem{font-size:18px}
+.fbt{font-size:11px;font-weight:700}
+.fbs{font-size:10px;color:var(--mu)}
 
-/* Car Visual */
-.car-wrap{position:relative;width:340px;height:340px;display:flex;align-items:center;justify-content:center}
-.ring{position:absolute;border-radius:50%;border:1px solid rgba(245,158,11,.14);animation:ringpulse 4s ease-in-out infinite}
-.ring1{width:320px;height:320px}
-.ring2{width:240px;height:240px;border-color:rgba(245,158,11,.09);animation-delay:-2s}
-@keyframes ringpulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.04);opacity:1}}
-.car-glow-bg{position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(rgba(245,158,11,.12),transparent 70%)}
-.car-emoji{
-  position:relative;z-index:2;
-  font-size:120px;line-height:1;
-  filter:drop-shadow(0 14px 36px rgba(245,158,11,.32));
-  animation:float 5s ease-in-out infinite;
-  user-select:none;
-}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
-.car-shadow{
-  position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
-  width:160px;height:14px;
-  background:radial-gradient(ellipse,rgba(245,158,11,.28),transparent 70%);
-  border-radius:50%;animation:shadowanim 5s ease-in-out infinite;
-}
-@keyframes shadowanim{0%,100%{transform:translateX(-50%) scaleX(1);opacity:.7}50%{transform:translateX(-50%) scaleX(.65);opacity:.3}}
-.fbadge{
-  position:absolute;display:flex;align-items:center;gap:9px;
-  padding:10px 14px;background:rgba(6,7,15,.93);
-  border:1px solid var(--border2);border-radius:12px;
-  backdrop-filter:blur(12px);z-index:3;
-  animation:float2 7s ease-in-out infinite;
-}
-.fbadge1{top:20px;right:-5px;animation-delay:0s}
-.fbadge2{bottom:50px;left:-5px;animation-delay:-3.5s}
-@keyframes float2{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-.fbadge-em{font-size:20px}
-.fbadge-t{font-size:12px;font-weight:700}
-.fbadge-s{font-size:10px;color:var(--muted)}
+/* LAYOUT */
+.wrap{max-width:1180px;margin:0 auto;padding:0 40px}
+section{padding:56px 0}
+.ey{font-size:10px;font-weight:700;color:var(--am);text-transform:uppercase;letter-spacing:2px;margin-bottom:9px}
+.st{font-size:clamp(20px,3vw,30px);font-weight:800;letter-spacing:-.5px}
+.srow{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:26px;gap:12px;flex-wrap:wrap}
 
-/* ── WRAPPER / SECTIONS ── */
-.wrap{max-width:1200px;margin:0 auto;padding:0 48px}
-section{padding:64px 0}
-.eyebrow{font-size:11px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
-.sec-title{font-size:clamp(22px,3vw,32px);font-weight:800;letter-spacing:-.6px;margin-bottom:0}
-.sec-row{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;gap:12px;flex-wrap:wrap}
+/* CARD */
+.card{background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.01));border:1px solid var(--bd);border-radius:18px;transition:.25s}
+.card:hover{border-color:var(--bd2);box-shadow:0 14px 44px rgba(0,0,0,.4)}
 
-/* ── CARDS (generic) ── */
-.card{
-  background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.01));
-  border:1px solid var(--border);border-radius:20px;
-  transition:.25s;
-}
-.card:hover{border-color:var(--border2);box-shadow:0 16px 48px rgba(0,0,0,.45)}
-
-/* ── FEATURES ── */
-.features{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.feat{
-  padding:26px 20px;text-align:center;
-  position:relative;overflow:hidden;
-}
+/* FEATURES */
+.feats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:56px}
+.feat{padding:24px 18px;text-align:center;position:relative;overflow:hidden}
 .feat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:2px 2px 0 0}
-.fa::before{background:var(--g-amber)}
-.fb::before{background:var(--g-blue)}
-.fg::before{background:var(--g-green)}
-.fp::before{background:linear-gradient(135deg,#8b5cf6,#ec4899)}
-.feat-em{font-size:32px;display:block;margin-bottom:12px}
-.feat-t{font-size:15px;font-weight:700;margin-bottom:7px}
-.feat-d{font-size:13px;color:var(--muted);line-height:1.6}
+.fa::before{background:var(--gam)}.fb2c::before{background:var(--gbl)}.fg::before{background:var(--ggr)}.fp::before{background:linear-gradient(135deg,#8b5cf6,#ec4899)}
+.fem{font-size:30px;display:block;margin-bottom:10px}
+.ft{font-size:14px;font-weight:700;margin-bottom:6px}
+.fd{font-size:12px;color:var(--mu);line-height:1.6}
 
-/* ── FLEET GRID ── */
-.search-box{
-  display:flex;gap:12px;margin-bottom:24px;
-}
-.search-inner{flex:1;position:relative}
-.search-inner input{padding-left:44px!important}
-.search-icon{
-  position:absolute;left:14px;top:50%;transform:translateY(-50%);
-  font-size:17px;opacity:.4;pointer-events:none;
-}
-.fleet{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px}
+/* DEMO CARS (rental cards) */
+.demo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.dc{border-radius:18px;overflow:hidden;cursor:pointer;transition:.28s}
+.dc:hover{transform:translateY(-7px);border-color:rgba(245,158,11,.3)!important;box-shadow:0 22px 52px rgba(0,0,0,.5),0 0 32px rgba(245,158,11,.09)}
+.dc-img{position:relative;height:160px;background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(234,88,12,.04));border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.dc-yr{position:absolute;font-size:100px;font-weight:900;color:rgba(255,255,255,.023);user-select:none;letter-spacing:-3px}
+.dc-em{font-size:74px;position:relative;z-index:1;filter:drop-shadow(0 6px 16px rgba(245,158,11,.22));animation:fl 5s ease-in-out infinite}
+.dc-tag{position:absolute;top:10px;right:10px;z-index:2;padding:3px 9px;border-radius:50px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.tag-av{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.28);color:var(--gr)}
+.tag-mine{background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.3);color:var(--am)}
+.tag-rent{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.28);color:var(--bl)}
+.dc-price{position:absolute;bottom:10px;left:10px;z-index:2;padding:4px 10px;border-radius:7px;background:rgba(6,7,15,.88);border:1px solid var(--bd2);font-size:12px;font-weight:700;color:var(--am)}
+.dc-body{padding:16px 16px 14px}
+.dc-model{font-size:15px;font-weight:700;margin-bottom:2px}
+.dc-meta{font-size:11px;color:var(--mu);font-family:'JetBrains Mono',monospace;margin-bottom:11px;display:flex;align-items:center;gap:5px}
+.dc-owner{display:flex;align-items:center;gap:7px;padding:7px 10px;background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:7px;margin-bottom:11px}
+.dc-orb{width:22px;height:22px;border-radius:50%;background:var(--gam);flex-shrink:0}
+.dc-ol{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.5px}
+.dc-oa{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--am2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dc-btns{display:flex;gap:7px}
+.btn-p{flex:1;padding:9px;background:var(--gam);border-radius:7px;color:#000;font-size:12px;font-weight:700;transition:.2s}
+.btn-p:hover{box-shadow:0 4px 14px rgba(245,158,11,.32);transform:translateY(-1px)}
+.btn-s{padding:9px 12px;background:rgba(255,255,255,.05);border:1px solid var(--bd);border-radius:7px;color:var(--su);font-size:12px;font-weight:600;transition:.2s}
+.btn-s:hover{background:rgba(255,255,255,.09);color:#fff}
 
-/* Vehicle card */
-.vc{cursor:pointer;border-radius:20px;overflow:hidden}
-.vc-img{
-  position:relative;height:165px;
-  background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(234,88,12,.04));
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:center;overflow:hidden;
-}
-.vc-img-bg{position:absolute;font-size:110px;font-weight:900;color:rgba(255,255,255,.025);user-select:none;letter-spacing:-4px}
-.vc-em{font-size:80px;position:relative;z-index:1;filter:drop-shadow(0 6px 18px rgba(245,158,11,.25));animation:float 5s ease-in-out infinite}
-.vc-tag{
-  position:absolute;top:11px;right:11px;z-index:2;
-  padding:3px 10px;border-radius:50px;font-size:10px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.5px;
-}
-.tag-mine{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:var(--amber)}
-.tag-ok{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.28);color:var(--green)}
-.vc-body{padding:18px 18px 16px}
-.vc-model{font-size:16px;font-weight:700;margin-bottom:3px}
-.vc-meta{
-  font-size:11px;color:var(--muted);
-  font-family:'JetBrains Mono',monospace;
-  margin-bottom:13px;
-  display:flex;align-items:center;gap:6px;
-}
-.vc-owner{
-  display:flex;align-items:center;gap:8px;
-  padding:8px 11px;
-  background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;
-  margin-bottom:13px;
-}
-.vc-orb{width:24px;height:24px;border-radius:50%;background:var(--g-amber);flex-shrink:0}
-.vc-olbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
-.vc-oaddr{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--amber2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vc-btns{display:flex;gap:8px}
-.btn-vc-p{
-  flex:1;padding:10px;background:var(--g-amber);border-radius:8px;
-  color:#000;font-size:13px;font-weight:700;
-  transition:.2s;
-}
-.btn-vc-p:hover{box-shadow:0 4px 16px rgba(245,158,11,.35);transform:translateY(-1px)}
-.btn-vc-s{
-  padding:10px 13px;
-  background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;
-  color:var(--sub);font-size:13px;font-weight:600;
-  transition:.2s;
-}
-.btn-vc-s:hover{background:rgba(255,255,255,.09);color:#fff}
+/* EMPTY */
+.empty{grid-column:1/-1;text-align:center;padding:50px 20px;color:var(--mu)}
+.empty-em{font-size:48px;display:block;margin-bottom:12px;opacity:.4}
+.empty-t{font-size:17px;font-weight:700;color:var(--su);margin-bottom:7px}
+.empty-d{font-size:13px;line-height:1.6}
 
-/* Empty */
-.empty{
-  grid-column:1/-1;text-align:center;
-  padding:60px 20px;color:var(--muted);
-}
-.empty-em{font-size:52px;display:block;margin-bottom:14px;opacity:.5}
-.empty-t{font-size:18px;font-weight:700;color:var(--sub);margin-bottom:8px}
-.empty-d{font-size:14px;line-height:1.6}
+/* SEARCH */
+.sbox{display:flex;gap:11px;margin-bottom:22px}
+.si{flex:1;position:relative}
+.si input{padding-left:42px!important}
+.sico{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:16px;opacity:.35;pointer-events:none}
 
-/* ── ACTIONS ── */
-.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.apanel{padding:28px;border-radius:20px}
-.apanel-icon{
-  width:46px;height:46px;border-radius:11px;
-  display:flex;align-items:center;justify-content:center;font-size:21px;margin-bottom:14px;
-}
-.ai-amber{background:rgba(245,158,11,.12)}
-.ai-blue{background:rgba(59,130,246,.12)}
-.apanel-t{font-size:19px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px}
-.apanel-d{font-size:13px;color:var(--muted);margin-bottom:22px}
-
-/* ── FORM ── */
-.frow{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px}
+/* ACTIONS */
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.ap{padding:26px;border-radius:18px}
+.api{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:13px}
+.api-a{background:rgba(245,158,11,.12)}
+.api-b{background:rgba(59,130,246,.12)}
+.apt{font-size:18px;font-weight:800;letter-spacing:-.3px;margin-bottom:3px}
+.apd{font-size:12px;color:var(--mu);margin-bottom:20px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 .frow.full{grid-template-columns:1fr}
-.field{display:flex;flex-direction:column;gap:7px}
-label{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.8px}
-input[type=text],input[type=number]{
-  width:100%;padding:12px 15px;
-  background:rgba(255,255,255,.04);
-  border:1px solid var(--border);border-radius:8px;
-  color:#f1f5f9;font-size:14px;font-weight:500;
-  outline:none;
-  transition:.2s;
-  -moz-appearance:textfield;
-}
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button{-webkit-appearance:none}
-input::placeholder{color:var(--muted);font-weight:400}
-input:hover{border-color:var(--border2)}
-input:focus{border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.04);box-shadow:0 0 0 3px rgba(245,158,11,.09)}
-input.mono{font-family:'JetBrains Mono',monospace;font-size:12px}
-.info-box{
-  display:flex;gap:9px;padding:11px 14px;border-radius:10px;
-  font-size:13px;margin-top:13px;
-}
-.info-warn{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.18);color:#b8936a}
-.info-inf{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.18);color:#7fa8d4}
+.field{display:flex;flex-direction:column;gap:6px}
+label{font-size:10px;font-weight:700;color:var(--su);text-transform:uppercase;letter-spacing:.8px}
+input[type=text],input[type=number]{width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1px solid var(--bd);border-radius:7px;color:#f1f5f9;font-size:13px;font-weight:500;outline:none;transition:.2s;-moz-appearance:textfield}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}
+input::placeholder{color:var(--mu);font-weight:400}
+input:hover{border-color:var(--bd2)}
+input:focus{border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.04);box-shadow:0 0 0 3px rgba(245,158,11,.08)}
+input.mono{font-family:'JetBrains Mono',monospace;font-size:11px}
+.ibox{display:flex;gap:8px;padding:10px 13px;border-radius:9px;font-size:12px;margin-top:11px}
+.iw{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.17);color:#b8936a}
+.ii{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.17);color:#7fa8d4}
 
-/* ── BUTTONS ── */
-.btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  padding:12px 24px;border-radius:8px;
-  font-size:14px;font-weight:700;
-  transition:.22s;white-space:nowrap;
-}
-.btn.w{width:100%;margin-top:8px}
-.btn:disabled{opacity:.45;cursor:not-allowed!important;transform:none!important;box-shadow:none!important}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 22px;border-radius:8px;font-size:13px;font-weight:700;transition:.22s;white-space:nowrap;border:none}
+.btn.w{width:100%;margin-top:7px}
+.btn:disabled{opacity:.45;cursor:not-allowed!important;transform:none!important}
 .btn:active:not(:disabled){transform:scale(.97)!important}
-.btn-amber{background:var(--g-amber);color:#000;box-shadow:0 4px 18px rgba(245,158,11,.3)}
-.btn-amber:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 28px rgba(245,158,11,.48)}
-.btn-blue{background:var(--g-blue);color:#fff;box-shadow:0 4px 18px rgba(59,130,246,.28)}
-.btn-blue:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 28px rgba(59,130,246,.45)}
-.btn-glass{background:rgba(255,255,255,.05);border:1px solid var(--border2);color:var(--sub)}
-.btn-glass:hover:not(:disabled){background:rgba(255,255,255,.09);color:#fff}
-.spin{
-  display:none;width:15px;height:15px;
-  border:2px solid rgba(0,0,0,.25);border-top-color:currentColor;
-  border-radius:50%;animation:spinit .7s linear infinite;
-}
-.ws .spin{border-color:rgba(255,255,255,.25);border-top-color:#fff}
+.btn-am{background:var(--gam);color:#000;box-shadow:0 4px 16px rgba(245,158,11,.28)}
+.btn-am:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 7px 26px rgba(245,158,11,.44)}
+.btn-bl{background:var(--gbl);color:#fff;box-shadow:0 4px 16px rgba(59,130,246,.26)}
+.btn-bl:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 7px 26px rgba(59,130,246,.42)}
+.btn-gl{background:rgba(255,255,255,.05);border:1px solid var(--bd2);color:var(--su)}
+.btn-gl:hover:not(:disabled){background:rgba(255,255,255,.09);color:#fff}
+.spin{display:none;width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:currentColor;border-radius:50%;animation:sp .7s linear infinite}
+.ws .spin{border-color:rgba(255,255,255,.2);border-top-color:#fff}
 .btn.loading .spin{display:inline-block}
-@keyframes spinit{to{transform:rotate(360deg)}}
+@keyframes sp{to{transform:rotate(360deg)}}
 
-/* ── QUERY RESULT ── */
-.detail{border-radius:20px;overflow:hidden;animation:fadeup .4s ease}
-@keyframes fadeup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-.detail-hero{
-  position:relative;height:180px;
-  background:linear-gradient(135deg,rgba(245,158,11,.09),rgba(234,88,12,.04));
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:center;overflow:hidden;
-}
-.detail-yr{position:absolute;font-size:130px;font-weight:900;color:rgba(255,255,255,.025);user-select:none}
-.detail-em{font-size:86px;position:relative;z-index:1;filter:drop-shadow(0 8px 24px rgba(245,158,11,.3))}
-.detail-body{padding:24px}
-.detail-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap}
-.detail-name{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
-.detail-id{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
-.detail-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}
-.detail-metas{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:20px}
-.dmeta{
-  padding:13px;text-align:center;
-  background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;
-}
-.dmeta-l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px}
-.dmeta-v{font-size:15px;font-weight:700}
-.dmeta-v.am{color:var(--amber)}
-.owner-block{
-  display:flex;align-items:center;gap:11px;
-  padding:13px;
-  background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:11px;
-  margin-bottom:20px;
-}
-.owner-block .orb{width:32px;height:32px;border-radius:50%;background:var(--g-amber);flex-shrink:0}
-.owner-addr{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber2);word-break:break-all}
-.sec-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
-.timeline{display:flex;flex-direction:column}
-.tl{
-  display:flex;align-items:flex-start;gap:11px;
-  padding:11px 0;border-bottom:1px solid rgba(255,255,255,.04);
-  animation:fadeup .3s ease;
-}
-.tl:last-child{border-bottom:none}
-.tl-n{
-  width:28px;height:28px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:800;flex-shrink:0;
-}
-.tl-na{background:rgba(245,158,11,.15);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
-.tl-nm{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--border)}
-.tl-nc{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3)}
-.tl-body{flex:1;min-width:0}
-.tl-addr{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--amber2);word-break:break-all;margin-bottom:2px}
-.tl-role{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-.cur-badge{
-  padding:2px 9px;flex-shrink:0;
-  background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);
-  border-radius:50px;font-size:10px;font-weight:700;color:var(--green);
-  text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;
-}
-.tx-lnk{
-  display:inline-flex;align-items:center;gap:3px;
-  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);
-  padding:3px 9px;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.2);
-  border-radius:50px;transition:.15s;
-}
-.tx-lnk:hover{background:rgba(6,182,212,.15)}
+/* DETAIL */
+.detail{border-radius:18px;overflow:hidden;animation:fup .4s ease;margin-top:4px}
+@keyframes fup{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.dh{position:relative;height:170px;background:linear-gradient(135deg,rgba(245,158,11,.09),rgba(234,88,12,.04));border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.dy{position:absolute;font-size:120px;font-weight:900;color:rgba(255,255,255,.025);user-select:none}
+.de{font-size:82px;position:relative;z-index:1;filter:drop-shadow(0 7px 22px rgba(245,158,11,.28))}
+.db{padding:22px}
+.dtop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.dname{font-size:21px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+.did{font-size:11px;color:var(--mu);font-family:'JetBrains Mono',monospace}
+.dacts{display:flex;gap:7px;flex-wrap:wrap;align-items:flex-start}
+.dmetas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.dm{padding:12px;text-align:center;background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:7px}
+.dml{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
+.dmv{font-size:14px;font-weight:700}
+.dmv.am{color:var(--am)}
+.ob{display:flex;align-items:center;gap:10px;padding:12px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.14);border-radius:10px;margin-bottom:18px}
+.ob .orb{width:30px;height:30px;border-radius:50%;background:var(--gam);flex-shrink:0}
+.oa{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--am2);word-break:break-all}
+.sl{font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.tl{display:flex;flex-direction:column}
+.tli{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.tli:last-child{border-bottom:none}
+.tln{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0}
+.tna{background:rgba(245,158,11,.14);color:var(--am);border:1px solid rgba(245,158,11,.28)}
+.tnm{background:rgba(255,255,255,.05);color:var(--mu);border:1px solid var(--bd)}
+.tnc{background:rgba(16,185,129,.14);color:var(--gr);border:1px solid rgba(16,185,129,.28)}
+.tlb{flex:1;min-width:0}
+.tla{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--am2);word-break:break-all;margin-bottom:2px}
+.tlr{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.4px}
+.cb{padding:2px 8px;flex-shrink:0;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.24);border-radius:50px;font-size:9px;font-weight:700;color:var(--gr);text-transform:uppercase;white-space:nowrap}
+.txl{display:inline-flex;align-items:center;gap:3px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cy);padding:2px 8px;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.18);border-radius:50px;transition:.15s}
+.txl:hover{background:rgba(6,182,212,.15)}
 
-/* ── EVENT FEED ── */
-.evfeed{display:flex;flex-direction:column;gap:9px}
-.evitem{
-  display:flex;align-items:center;gap:11px;
-  padding:12px 15px;
-  background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:12px;
-  cursor:pointer;transition:.2s;
-  animation:slideR .35s ease;
-}
-@keyframes slideR{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
-.evitem:hover{background:rgba(255,255,255,.05);border-color:var(--border2)}
-.evicon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.evicon.r{background:rgba(245,158,11,.12)}
-.evicon.t{background:rgba(59,130,246,.12)}
-.evbody{flex:1;min-width:0}
-.evtitle{font-size:13px;font-weight:700;margin-bottom:2px}
-.evsub{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.evmeta{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
-.evtime{font-size:11px;color:var(--muted)}
-.evblk{
-  padding:2px 7px;
-  background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2);
-  border-radius:50px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--cyan);white-space:nowrap;
-}
-.ev-empty{text-align:center;padding:40px 20px;color:var(--muted)}
-.ev-empty .em{font-size:40px;display:block;margin-bottom:12px;opacity:.5}
+/* EVENTS */
+.evf{display:flex;flex-direction:column;gap:8px}
+.evi{display:flex;align-items:center;gap:10px;padding:11px 14px;background:rgba(255,255,255,.025);border:1px solid var(--bd);border-radius:11px;cursor:pointer;transition:.2s;animation:sr .3s ease}
+@keyframes sr{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+.evi:hover{background:rgba(255,255,255,.05);border-color:var(--bd2)}
+.evic{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.evic.r{background:rgba(245,158,11,.11)}.evic.t{background:rgba(59,130,246,.11)}
+.evb{flex:1;min-width:0}
+.evt{font-size:12px;font-weight:700;margin-bottom:2px}
+.evs{font-size:10px;color:var(--mu);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.evm{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.evtm{font-size:10px;color:var(--mu)}
+.evbk{padding:2px 6px;background:rgba(6,182,212,.09);border:1px solid rgba(6,182,212,.18);border-radius:50px;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--cy);white-space:nowrap}
+.ev-empty{text-align:center;padding:36px 20px;color:var(--mu)}
 
-/* ── STEPS ── */
-.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.step{
-  padding:24px 20px;border-radius:20px;
-  position:relative;overflow:hidden;
-}
-.step-num{
-  position:absolute;top:12px;right:14px;
-  font-size:40px;font-weight:900;color:rgba(245,158,11,.07);line-height:1;user-select:none;
-}
-.step-em{font-size:26px;display:block;margin-bottom:12px}
-.step-t{font-size:14px;font-weight:700;margin-bottom:7px}
-.step-d{font-size:12px;color:var(--muted);line-height:1.65}
+/* PIPELINE */
+.pipe{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.ps{padding:22px 18px;border-radius:18px;position:relative;overflow:hidden}
+.psn{position:absolute;top:10px;right:12px;font-size:38px;font-weight:900;color:rgba(245,158,11,.07);line-height:1;user-select:none}
+.psem{font-size:24px;display:block;margin-bottom:10px}
+.pst{font-size:13px;font-weight:700;margin-bottom:6px}
+.psd{font-size:11px;color:var(--mu);line-height:1.65}
 
-/* ── FOOTER ── */
-footer{
-  border-top:1px solid var(--border);
-  padding:26px 48px;text-align:center;
-  font-size:13px;color:var(--muted);
-}
-#footer-contract{
-  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);
-  display:block;margin-top:5px;
-}
+/* PIPELINE TABLE */
+.ptable{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px}
+.ptable th{text-align:left;padding:10px 14px;font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--bd)}
+.ptable td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;line-height:1.5}
+.ptable tr:last-child td{border-bottom:none}
+.ptable tr:hover td{background:rgba(255,255,255,.02)}
+.badge-step{display:inline-flex;align-items:center;padding:2px 8px;border-radius:50px;font-size:10px;font-weight:700}
+.bs-admin{background:rgba(245,158,11,.12);color:var(--am);border:1px solid rgba(245,158,11,.25)}
+.bs-owner{background:rgba(59,130,246,.12);color:var(--bl);border:1px solid rgba(59,130,246,.25)}
+.bs-pub{background:rgba(16,185,129,.12);color:var(--gr);border:1px solid rgba(16,185,129,.25)}
+code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cy);background:rgba(6,182,212,.08);padding:1px 5px;border-radius:4px}
 
-/* ── RESPONSIVE ── */
+/* FOOTER */
+footer{border-top:1px solid var(--bd);padding:24px 40px;text-align:center;font-size:12px;color:var(--mu)}
+#fc{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cy);display:block;margin-top:4px}
+
+/* RESPONSIVE */
 @media(max-width:960px){
-  nav{padding:0 20px}
-  .nav-links{display:none}
-  .hero-inner{flex-direction:column;padding:48px 24px;gap:40px}
-  .hero-right{display:none}
-  .hero-left{width:100%}
-  .wrap{padding:0 24px}
-  .features{grid-template-columns:1fr 1fr}
-  .action-grid{grid-template-columns:1fr}
-  .steps{grid-template-columns:1fr 1fr}
+  nav{padding:0 18px}
+  .nlinks{display:none}
+  .hi{flex-direction:column;padding:44px 22px;gap:36px}
+  .hr{display:none}
+  .hl{width:100%}
+  .wrap{padding:0 22px}
+  .feats{grid-template-columns:1fr 1fr}
+  .agrid{grid-template-columns:1fr}
+  .pipe{grid-template-columns:1fr 1fr}
+  #demo-banner{padding:10px 22px}
 }
 @media(max-width:560px){
-  .hero-h1{letter-spacing:-1px}
-  .features{grid-template-columns:1fr}
-  .steps{grid-template-columns:1fr}
+  h1{letter-spacing:-1px}
+  .feats{grid-template-columns:1fr}
+  .pipe{grid-template-columns:1fr}
   .frow{grid-template-columns:1fr}
-  .hero-stats{gap:0}
-  footer{padding:24px 20px}
-  .detail-metas{grid-template-columns:1fr 1fr}
+  footer{padding:20px 18px}
+  .dmetas{grid-template-columns:1fr 1fr}
+  .hstats{gap:0}
 }
 </style>
 </head>
@@ -624,680 +347,652 @@ footer{
 <div class="bg"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
 <div id="toasts"></div>
 
-<!-- ═══════ MODAL ═══════ -->
-<div class="modal-bg" id="transfer-modal" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <div class="modal-head">
-      <span class="modal-head-icon">🔄</span>
-      <div class="modal-head-txt">
-        <h3>Transfer Ownership</h3>
-        <p>Send vehicle to a new Ethereum address</p>
-      </div>
-      <button class="modal-x" onclick="closeModal()">✕</button>
+<!-- TRANSFER MODAL -->
+<div class="mbg" id="txmodal" onclick="if(event.target===this)closeModal()">
+  <div class="mbox">
+    <div class="mhead">
+      <span class="mhead-icon">🔄</span>
+      <div><h3>Transfer Ownership</h3><p>Send vehicle to a new Ethereum address</p></div>
+      <button class="mx" onclick="closeModal()">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="modal-vcard">
-        <span class="em" id="m-em">🚗</span>
-        <div>
-          <div class="name" id="m-name">Vehicle</div>
-          <div class="meta" id="m-meta">—</div>
-        </div>
-      </div>
+    <div class="mbody">
+      <div class="mvc"><span class="em" id="m-em">🚗</span><div><div class="vn" id="m-vn">Vehicle</div><div class="vm" id="m-vm">—</div></div></div>
       <input type="hidden" id="m-vid"/>
-      <div class="field" style="margin-bottom:15px">
-        <label>🏠 New Owner Address</label>
-        <input type="text" id="m-newowner" class="mono" placeholder="0xNewOwnerWalletAddress…" autocomplete="off"/>
-      </div>
-      <div class="info-box info-warn">
-        <span>⚠️</span>
-        <span>This is <strong>permanent and irreversible</strong>. The new owner gains full control of this vehicle.</span>
-      </div>
-      <button class="btn btn-blue ws w" id="m-tx-btn" onclick="doModalTransfer()">
-        <span class="spin"></span><span>⛓️ Confirm Transfer on Blockchain</span>
-      </button>
+      <div class="field" style="margin-bottom:14px"><label>🏠 New Owner Wallet Address</label><input type="text" id="m-no" class="mono" placeholder="0xNewOwnerAddress…" autocomplete="off"/></div>
+      <div class="ibox iw"><span>⚠️</span><span>This is <strong>permanent and irreversible</strong>. New owner gets full control.</span></div>
+      <button class="btn btn-bl ws w" id="m-btn" onclick="doModalTx()"><span class="spin"></span><span>⛓️ Confirm Transfer on Blockchain</span></button>
     </div>
   </div>
 </div>
 
-<!-- ═══════ NAVBAR ═══════ -->
-<nav id="navbar">
-  <div class="logo">
-    <div class="logo-mark">🚗</div>
-    <div class="logo-name">Vehicle<em>Chain</em></div>
+<!-- NAVBAR -->
+<nav>
+  <div class="logo"><div class="lmark">🚗</div><div class="lname">Vehicle<em>Chain</em></div></div>
+  <div class="nlinks">
+    <button class="nl" onclick="go('fleet-sec')">Fleet</button>
+    <button class="nl" onclick="go('actions-sec')">Actions</button>
+    <button class="nl" onclick="go('query-sec')">Query</button>
+    <button class="nl" onclick="go('pipeline-sec')">Pipeline</button>
+    <button class="nl" onclick="go('events-sec')">Events</button>
   </div>
-  <div class="nav-links">
-    <button class="nav-link" onclick="goto('fleet-sec')">Fleet</button>
-    <button class="nav-link" onclick="goto('actions-sec')">Actions</button>
-    <button class="nav-link" onclick="goto('query-sec')">Query</button>
-    <button class="nav-link" onclick="goto('events-sec')">Events</button>
-  </div>
-  <div class="nav-r">
-    <div class="net-pill"><div class="net-dot"></div><span>Sepolia</span></div>
+  <div class="nr">
+    <div class="npill"><div class="ndot"></div><span>Sepolia</span></div>
     <div id="admin-tag">👑 Admin</div>
     <button id="btn-connect" onclick="connectWallet()">🦊 Connect MetaMask</button>
-    <div id="wallet-display">
-      <div class="wallet-orb"></div>
-      <span id="wallet-addr">0x…</span>
-    </div>
+    <div id="wdisplay"><div class="worb"></div><span id="waddr">0x…</span></div>
   </div>
 </nav>
 
-<!-- ═══════ HERO ═══════ -->
+<!-- DEMO BANNER -->
+<div id="demo-banner">
+  🎭 <strong>Demo Mode Active</strong> — 6 sample vehicles are pre-loaded for testing. Connect MetaMask + deploy contract to go live on Ethereum.
+</div>
+
+<!-- HERO -->
 <section class="hero" id="top">
-  <div class="hero-glow"></div>
-  <div class="streaks">
-    <div class="streak"></div><div class="streak"></div>
-    <div class="streak"></div><div class="streak"></div>
-  </div>
-  <div class="hero-inner">
-    <div class="hero-left">
-      <div class="badge"><span class="badge-dot"></span>Ethereum · Decentralized · Immutable</div>
-      <h1 class="hero-h1">The Future of<br><span class="amber-txt">Vehicle Ownership</span><br>Is On-Chain</h1>
-      <p class="hero-desc">Register vehicles, transfer ownership securely, and trace complete ownership history — all powered by immutable Ethereum smart contracts. No middlemen. No fraud.</p>
-      <div class="hero-btns">
-        <button class="btn-hero primary" onclick="goto('fleet-sec')">🚘 Browse Fleet</button>
-        <button class="btn-hero outline" onclick="connectWallet()">🦊 Connect Wallet</button>
+  <div class="hglow"></div>
+  <div class="streaks"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
+  <div class="hi">
+    <div class="hl">
+      <div class="hbadge"><span class="hbdot"></span>Ethereum · Decentralized · Immutable</div>
+      <h1>The Future of<br><span class="am-txt">Vehicle Ownership</span><br>Is On-Chain</h1>
+      <p class="hdesc">Register vehicles, transfer ownership securely, and trace complete ownership history — all powered by immutable Ethereum smart contracts. No middlemen. No fraud.</p>
+      <div class="hbtns">
+        <button class="hbtn p" onclick="go('fleet-sec')">🚘 Browse Fleet</button>
+        <button class="hbtn o" onclick="connectWallet()">🦊 Connect Wallet</button>
       </div>
-      <div class="hero-stats">
-        <div class="stat"><span class="stat-n" id="s-vehicles">0</span><span class="stat-l">On-Chain</span></div>
-        <div class="stat"><span class="stat-n" id="s-reg">0</span><span class="stat-l">Registered</span></div>
-        <div class="stat"><span class="stat-n" id="s-tx">0</span><span class="stat-l">Transfers</span></div>
-        <div class="stat"><span class="stat-n" id="s-ev">0</span><span class="stat-l">Events</span></div>
+      <div class="hstats">
+        <div class="hs"><span class="hsn" id="s-v">6</span><span class="hsl">On-Chain</span></div>
+        <div class="hs"><span class="hsn" id="s-r">6</span><span class="hsl">Registered</span></div>
+        <div class="hs"><span class="hsn" id="s-t">0</span><span class="hsl">Transfers</span></div>
+        <div class="hs"><span class="hsn" id="s-e">0</span><span class="hsl">Events</span></div>
       </div>
     </div>
-    <div class="hero-right">
-      <div class="car-wrap">
-        <div class="ring ring1"></div>
-        <div class="ring ring2"></div>
-        <div class="car-glow-bg"></div>
-        <div class="car-emoji">🏎️</div>
-        <div class="car-shadow"></div>
-        <div class="fbadge fbadge1">
-          <span class="fbadge-em">🔒</span>
-          <div><div class="fbadge-t">Immutable Record</div><div class="fbadge-s">Ethereum Blockchain</div></div>
-        </div>
-        <div class="fbadge fbadge2">
-          <span class="fbadge-em">✅</span>
-          <div><div class="fbadge-t">Verified Ownership</div><div class="fbadge-s">Smart Contract</div></div>
-        </div>
+    <div class="hr">
+      <div class="cw">
+        <div class="ring r1"></div><div class="ring r2"></div>
+        <div class="cglow"></div>
+        <div class="cem">🏎️</div>
+        <div class="csh"></div>
+        <div class="fb fb1"><span class="fbem">🔒</span><div><div class="fbt">Immutable Record</div><div class="fbs">Ethereum Blockchain</div></div></div>
+        <div class="fb fb2"><span class="fbem">✅</span><div><div class="fbt">Verified Ownership</div><div class="fbs">Smart Contract</div></div></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════ FEATURES ═══════ -->
-<div class="wrap" style="padding-bottom:64px">
-  <div class="features">
-    <div class="card feat fa"><span class="feat-em">📝</span><div class="feat-t">Register</div><div class="feat-d">Admin registers vehicles with full details, permanently stored on Ethereum</div></div>
-    <div class="card feat fb"><span class="feat-em">🔄</span><div class="feat-t">Transfer</div><div class="feat-d">Owners transfer vehicles to any Ethereum address instantly and securely</div></div>
-    <div class="card feat fg"><span class="feat-em">📋</span><div class="feat-t">Full History</div><div class="feat-d">Every owner recorded forever — a complete tamper-proof provenance chain</div></div>
-    <div class="card feat fp"><span class="feat-em">🔒</span><div class="feat-t">Fraud-Proof</div><div class="feat-d">No central authority. No tampering. Only cryptographic truth on-chain</div></div>
+<!-- FEATURES -->
+<div class="wrap">
+  <div class="feats">
+    <div class="card feat fa"><span class="fem">📝</span><div class="ft">Register</div><div class="fd">Admin registers vehicles with full details, permanently stored on Ethereum</div></div>
+    <div class="card feat fb2c"><span class="fem">🔄</span><div class="ft">Transfer</div><div class="fd">Owners transfer vehicles to any Ethereum address instantly and securely</div></div>
+    <div class="card feat fg"><span class="fem">📋</span><div class="ft">Full History</div><div class="fd">Every owner recorded forever — a complete tamper-proof provenance chain</div></div>
+    <div class="card feat fp"><span class="fem">🔒</span><div class="ft">Fraud-Proof</div><div class="fd">No central authority. No tampering. Only cryptographic truth on-chain</div></div>
   </div>
 </div>
 
-<!-- ═══════ FLEET ═══════ -->
-<section id="fleet-sec">
+<!-- FLEET -->
+<section id="fleet-sec" style="padding-top:0">
   <div class="wrap">
-    <div class="sec-row">
-      <div><div class="eyebrow">On-Chain Registry</div><div class="sec-title">Registered Fleet</div></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn btn-glass" onclick="loadDemo()">🎭 Load Demo</button>
-        <button class="btn btn-amber" onclick="goto('actions-sec')">+ Register</button>
+    <div class="srow">
+      <div><div class="ey">On-Chain Registry</div><div class="st">Registered Fleet</div></div>
+      <div style="display:flex;gap:9px;flex-wrap:wrap">
+        <button class="btn btn-gl" onclick="go('actions-sec')">+ Register Vehicle</button>
       </div>
     </div>
-    <div class="search-box">
-      <div class="search-inner">
-        <span class="search-icon">🔎</span>
-        <input type="text" id="search" placeholder="Search by Vehicle ID or model…" oninput="renderFleet(this.value)"/>
-      </div>
+    <div class="sbox">
+      <div class="si"><span class="sico">🔎</span><input type="text" id="search" placeholder="Search by ID or model…" oninput="renderFleet(this.value)"/></div>
     </div>
-    <div class="fleet" id="fleet"></div>
+    <div class="demo-grid" id="fleet"></div>
   </div>
 </section>
 
-<!-- ═══════ ACTIONS ═══════ -->
+<!-- ACTIONS -->
 <section id="actions-sec" style="padding-top:0">
   <div class="wrap">
-    <div class="sec-row">
-      <div><div class="eyebrow">Blockchain Transactions</div><div class="sec-title">Actions</div></div>
-      <div id="admin-tag2" style="display:none;padding:5px 12px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:50px;font-size:12px;font-weight:700;color:var(--amber)">👑 Admin Mode Active</div>
+    <div class="srow">
+      <div><div class="ey">Blockchain Transactions</div><div class="st">Actions</div></div>
+      <div id="atag" style="display:none;padding:4px 11px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:50px;font-size:11px;font-weight:700;color:var(--am)">👑 Admin Mode Active</div>
     </div>
-    <div class="action-grid">
-      <!-- Register -->
-      <div class="card apanel">
-        <div class="apanel-icon ai-amber">📝</div>
-        <div class="apanel-t">Register Vehicle</div>
-        <div class="apanel-d">Add a new vehicle to the blockchain registry</div>
-        <div class="frow">
-          <div class="field"><label>🚗 Vehicle ID</label><input type="text" id="r-id" placeholder="e.g. MH12AB1234" autocomplete="off"/></div>
-          <div class="field"><label>📅 Year</label><input type="number" id="r-year" placeholder="2024" min="1900" max="2035"/></div>
-        </div>
-        <div class="frow full" style="margin-bottom:13px">
-          <div class="field"><label>🏎️ Model Name</label><input type="text" id="r-model" placeholder="e.g. Tesla Model S, BMW M5…" autocomplete="off"/></div>
-        </div>
-        <div class="frow full">
-          <div class="field"><label>👤 Initial Owner Address</label><input type="text" id="r-owner" class="mono" placeholder="0xOwnerWalletAddress…" autocomplete="off"/></div>
-        </div>
-        <button class="btn btn-amber w" id="reg-btn" onclick="doRegister()">
-          <span class="spin"></span><span>⛓️ Register on Blockchain</span>
-        </button>
-        <div class="info-box info-warn"><span>⚠️</span><span><strong>Admin only.</strong> Connect the deployer wallet to register vehicles.</span></div>
+    <div class="agrid">
+      <div class="card ap">
+        <div class="api api-a">📝</div>
+        <div class="apt">Register Vehicle</div>
+        <div class="apd">Add a new vehicle to the blockchain (Admin only)</div>
+        <div class="frow"><div class="field"><label>🚗 Vehicle ID</label><input type="text" id="r-id" placeholder="MH12AB1234" autocomplete="off"/></div><div class="field"><label>📅 Year</label><input type="number" id="r-yr" placeholder="2024" min="1900" max="2035"/></div></div>
+        <div class="frow full" style="margin-bottom:12px"><div class="field"><label>🏎️ Model</label><input type="text" id="r-mod" placeholder="e.g. Tesla Model S" autocomplete="off"/></div></div>
+        <div class="frow full"><div class="field"><label>👤 Initial Owner Address</label><input type="text" id="r-own" class="mono" placeholder="0xOwnerWalletAddress…" autocomplete="off"/></div></div>
+        <button class="btn btn-am w" id="rbtn" onclick="doRegister()"><span class="spin"></span><span>⛓️ Register on Blockchain</span></button>
+        <div class="ibox iw"><span>⚠️</span><span><strong>Admin only.</strong> Use the deployer wallet to register.</span></div>
       </div>
-      <!-- Transfer -->
-      <div class="card apanel">
-        <div class="apanel-icon ai-blue">🔄</div>
-        <div class="apanel-t">Transfer Ownership</div>
-        <div class="apanel-d">Transfer your vehicle to a new Ethereum address</div>
-        <div class="frow full" style="margin-bottom:13px">
-          <div class="field"><label>🚗 Vehicle ID</label><input type="text" id="t-id" placeholder="e.g. MH12AB1234" autocomplete="off"/></div>
-        </div>
-        <div class="frow full">
-          <div class="field"><label>🏠 New Owner Address</label><input type="text" id="t-owner" class="mono" placeholder="0xNewOwnerAddress…" autocomplete="off"/></div>
-        </div>
-        <button class="btn btn-blue ws w" id="tx-btn" onclick="doTransfer()">
-          <span class="spin"></span><span>🔄 Transfer on Blockchain</span>
-        </button>
-        <div class="info-box info-inf"><span>ℹ️</span><span><strong>Owner only.</strong> Only the current vehicle owner can initiate a transfer.</span></div>
+      <div class="card ap">
+        <div class="api api-b">🔄</div>
+        <div class="apt">Transfer Ownership</div>
+        <div class="apd">Transfer your vehicle to a new Ethereum address</div>
+        <div class="frow full" style="margin-bottom:12px"><div class="field"><label>🚗 Vehicle ID</label><input type="text" id="t-id" placeholder="MH12AB1234" autocomplete="off"/></div></div>
+        <div class="frow full"><div class="field"><label>🏠 New Owner Address</label><input type="text" id="t-own" class="mono" placeholder="0xNewOwnerAddress…" autocomplete="off"/></div></div>
+        <button class="btn btn-bl ws w" id="tbtn" onclick="doTransfer()"><span class="spin"></span><span>🔄 Transfer on Blockchain</span></button>
+        <div class="ibox ii"><span>ℹ️</span><span><strong>Owner only.</strong> Only the current vehicle owner can transfer.</span></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════ QUERY ═══════ -->
+<!-- QUERY -->
 <section id="query-sec" style="padding-top:0">
   <div class="wrap">
-    <div class="eyebrow">Blockchain Lookup</div>
-    <div class="sec-title" style="margin-bottom:22px">Query Vehicle Details</div>
-    <div class="search-box">
-      <div class="search-inner" style="flex:1">
-        <span class="search-icon">🔎</span>
-        <input type="text" id="q-id" placeholder="Enter Vehicle ID (e.g. MH12AB1234)…" onkeydown="if(event.key==='Enter')doQuery()"/>
-      </div>
-      <button class="btn btn-amber" id="q-btn" onclick="doQuery()">
-        <span class="spin"></span><span>Search</span>
-      </button>
+    <div class="ey">Blockchain Lookup</div>
+    <div class="st" style="margin-bottom:20px">Query Vehicle Details</div>
+    <div class="sbox">
+      <div class="si" style="flex:1"><span class="sico">🔎</span><input type="text" id="q-id" placeholder="Enter Vehicle ID (e.g. MH12AB1234)…" onkeydown="if(event.key==='Enter')doQuery()"/></div>
+      <button class="btn btn-am" id="q-btn" onclick="doQuery()"><span class="spin"></span><span>Search</span></button>
     </div>
-    <div id="query-result" style="margin-top:8px"></div>
+    <div id="qresult"></div>
   </div>
 </section>
 
-<!-- ═══════ EVENTS ═══════ -->
+<!-- PIPELINE GUIDE -->
+<section id="pipeline-sec" style="padding-top:0">
+  <div class="wrap">
+    <div class="ey">How It Works</div>
+    <div class="st" style="margin-bottom:8px">Complete Pipeline & What To Do</div>
+    <p style="font-size:13px;color:var(--mu);margin-bottom:28px">Step-by-step guide from smart contract deployment to using the DApp</p>
+
+    <div class="pipe" style="margin-bottom:36px">
+      <div class="card ps"><div class="psn">01</div><span class="psem">📋</span><div class="pst">Open Remix IDE</div><div class="psd">Go to <a href="https://remix.ethereum.org" target="_blank" style="color:var(--am)">remix.ethereum.org</a> → New file → Name it <code>VehicleRegistry.sol</code> → Paste the smart contract code</div></div>
+      <div class="card ps"><div class="psn">02</div><span class="psem">⚙️</span><div class="pst">Compile Contract</div><div class="psd">Click <strong>Solidity Compiler</strong> tab → Select version <code>0.8.19</code> → Click <strong>Compile VehicleRegistry.sol</strong> → Check for no errors</div></div>
+      <div class="card ps"><div class="psn">03</div><span class="psem">🦊</span><div class="pst">Deploy via MetaMask</div><div class="psd">Click <strong>Deploy & Run</strong> tab → Environment: <strong>Injected Provider - MetaMask</strong> → Switch to <strong>Sepolia Testnet</strong> → Click <strong>Deploy</strong> → Confirm in MetaMask</div></div>
+      <div class="card ps"><div class="psn">04</div><span class="psem">⛓️</span><div class="pst">Configure & Use</div><div class="psd">Copy the deployed address from Remix → Paste into <code>app.js</code> line 13 as <code>CONTRACT_ADDRESS</code> → Refresh this page → All features unlock!</div></div>
+    </div>
+
+    <div class="card" style="padding:24px;margin-bottom:24px">
+      <div style="font-size:15px;font-weight:700;margin-bottom:4px">📋 Full Action Pipeline</div>
+      <div style="font-size:12px;color:var(--mu);margin-bottom:16px">What each user role can do on the platform</div>
+      <table class="ptable">
+        <thead><tr><th>Step</th><th>Who</th><th>Action</th><th>How To Do It</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1</strong></td><td><span class="badge-step bs-admin">👑 Admin</span></td><td><strong>Deploy Contract</strong></td><td>Open Remix → Compile <code>VehicleRegistry.sol</code> → Deploy on Sepolia via MetaMask</td></tr>
+          <tr><td><strong>2</strong></td><td><span class="badge-step bs-admin">👑 Admin</span></td><td><strong>Register a Vehicle</strong></td><td>Fill in Vehicle ID, Year, Model, Owner Address → Click <em>Register on Blockchain</em></td></tr>
+          <tr><td><strong>3</strong></td><td><span class="badge-step bs-pub">🌐 Anyone</span></td><td><strong>Browse Fleet</strong></td><td>Scroll to Fleet section → See all registered vehicles → Click any card to view details</td></tr>
+          <tr><td><strong>4</strong></td><td><span class="badge-step bs-pub">🌐 Anyone</span></td><td><strong>Query Vehicle</strong></td><td>Enter Vehicle ID in Query section → Click Search → See full ownership history timeline</td></tr>
+          <tr><td><strong>5</strong></td><td><span class="badge-step bs-owner">🔑 Owner</span></td><td><strong>Transfer Ownership</strong></td><td>Enter Vehicle ID + new owner address → Click Transfer → Confirm MetaMask transaction</td></tr>
+          <tr><td><strong>6</strong></td><td><span class="badge-step bs-pub">🌐 Anyone</span></td><td><strong>View History</strong></td><td>Query any vehicle → Ownership Timeline shows every past owner in chronological order</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="padding:24px">
+      <div style="font-size:15px;font-weight:700;margin-bottom:4px">🧪 Demo Vehicle IDs for Testing</div>
+      <div style="font-size:12px;color:var(--mu);margin-bottom:16px">Use these IDs in the Query section to test the lookup feature</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
+        <div style="padding:10px 13px;background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--am2)">MH12AB1234 <span style="color:var(--mu);font-family:'Outfit',sans-serif;font-size:11px">Tesla Model S</span></div>
+        <div style="padding:10px 13px;background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--am2)">DL08XY9988 <span style="color:var(--mu);font-family:'Outfit',sans-serif;font-size:11px">BMW M5</span></div>
+        <div style="padding:10px 13px;background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--am2)">KA01MN5566 <span style="color:var(--mu);font-family:'Outfit',sans-serif;font-size:11px">Lamborghini Urus</span></div>
+        <div style="padding:10px 13px;background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--am2)">GJ05PQ2233 <span style="color:var(--mu);font-family:'Outfit',sans-serif;font-size:11px">Toyota Land Cruiser</span></div>
+        <div style="padding:10px 13px;background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--am2)">RJ14ZZ0077 <span style="color:var(--mu);font-family:'Outfit',sans-serif;font-size:11px">Porsche 911</span></div>
+        <div style="padding:10px 13px;background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--am2)">TN09CC3344 <span style="color:var(--mu);font-family:'Outfit',sans-serif;font-size:11px">Ford Mustang GT</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EVENTS -->
 <section id="events-sec" style="padding-top:0">
   <div class="wrap">
-    <div class="sec-row" style="margin-bottom:18px">
-      <div><div class="eyebrow">Live Feed</div><div class="sec-title">Blockchain Events</div></div>
-      <button class="btn btn-glass" onclick="clearEvents()">🗑️ Clear</button>
+    <div class="srow" style="margin-bottom:16px">
+      <div><div class="ey">Live Feed</div><div class="st">Blockchain Events</div></div>
+      <button class="btn btn-gl" onclick="clearEv()">🗑️ Clear</button>
     </div>
-    <div class="evfeed" id="evfeed"></div>
-  </div>
-</section>
-
-<!-- ═══════ SETUP STEPS ═══════ -->
-<section style="padding-top:0">
-  <div class="wrap">
-    <div class="eyebrow">Getting Started</div>
-    <div class="sec-title" style="margin-bottom:26px">Deploy in 4 Steps</div>
-    <div class="steps">
-      <div class="card step"><div class="step-num">01</div><span class="step-em">📋</span><div class="step-t">Open Remix IDE</div><div class="step-d">Go to <a href="https://remix.ethereum.org" target="_blank" style="color:var(--amber)">remix.ethereum.org</a>, create <code style="font-family:monospace;color:var(--cyan);font-size:11px">VehicleRegistry.sol</code> and paste the contract code</div></div>
-      <div class="card step"><div class="step-num">02</div><span class="step-em">🦊</span><div class="step-t">Deploy via MetaMask</div><div class="step-d">Select <strong>Injected Provider — MetaMask</strong> on Sepolia Testnet, click Deploy and confirm the transaction</div></div>
-      <div class="card step"><div class="step-num">03</div><span class="step-em">⚙️</span><div class="step-t">Update CONTRACT_ADDRESS</div><div class="step-d">Copy the deployed address → paste into <code style="font-family:monospace;color:var(--cyan);font-size:11px">app.js</code> line 13 as <code style="font-family:monospace;color:var(--amber);font-size:11px">CONTRACT_ADDRESS</code></div></div>
-      <div class="card step"><div class="step-num">04</div><span class="step-em">🚀</span><div class="step-t">Launch &amp; Use</div><div class="step-d">Refresh <strong>localhost:3000</strong>, connect MetaMask → register vehicles, transfer ownership and track history!</div></div>
-    </div>
+    <div class="evf" id="evfeed"></div>
   </div>
 </section>
 
 <footer>
-  <strong style="color:var(--sub)">VehicleChain</strong> · Blockchain Vehicle Registry DApp · Ethereum Sepolia Testnet · Built with Solidity + Web3.js + MetaMask
-  <span id="footer-contract">Contract not configured — update CONTRACT_ADDRESS in app.js</span>
+  <strong style="color:var(--su)">VehicleChain</strong> · Blockchain Vehicle Registry DApp · Ethereum Sepolia · Solidity + Web3.js + MetaMask
+  <span id="fc">Contract not configured — deploy via Remix and update CONTRACT_ADDRESS in this file</span>
 </footer>
 
 <script>
-// ─────────────────────────────────────────────────────────────
-// CONFIG — update CONTRACT_ADDRESS after Remix deployment
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// CONFIG — paste your Remix-deployed address here
+// ═══════════════════════════════════════════════════════
 const CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000";
-const SEPOLIA_ID       = "0xaa36a7";
-const SCAN             = "https://sepolia.etherscan.io";
+const SEPOLIA_ID = "0xaa36a7";
+const SCAN = "https://sepolia.etherscan.io";
 
 const ABI = [
   {"inputs":[],"stateMutability":"nonpayable","type":"constructor"},
   {"anonymous":false,"inputs":[{"indexed":true,"internalType":"string","name":"vehicleId","type":"string"},{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"OwnershipTransferred","type":"event"},
   {"anonymous":false,"inputs":[{"indexed":true,"internalType":"string","name":"vehicleId","type":"string"},{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"VehicleRegistered","type":"event"},
   {"inputs":[],"name":"admin","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
-  {"inputs":[{"internalType":"string","name":"_vehicleId","type":"string"}],"name":"getCurrentOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
   {"inputs":[{"internalType":"string","name":"_vehicleId","type":"string"}],"name":"getOwnershipHistory","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},
   {"inputs":[{"internalType":"string","name":"_vehicleId","type":"string"}],"name":"getVehicleDetails","outputs":[{"internalType":"string","name":"vehicleId","type":"string"},{"internalType":"string","name":"model","type":"string"},{"internalType":"uint256","name":"year","type":"uint256"},{"internalType":"address","name":"currentOwner","type":"address"},{"internalType":"uint256","name":"registrationDate","type":"uint256"}],"stateMutability":"view","type":"function"},
-  {"inputs":[{"internalType":"string","name":"_vehicleId","type":"string"}],"name":"isVehicleRegistered","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
   {"inputs":[{"internalType":"string","name":"_vehicleId","type":"string"},{"internalType":"string","name":"_model","type":"string"},{"internalType":"uint256","name":"_year","type":"uint256"},{"internalType":"address","name":"_owner","type":"address"}],"name":"registerVehicle","outputs":[],"stateMutability":"nonpayable","type":"function"},
   {"inputs":[{"internalType":"string","name":"_vehicleId","type":"string"},{"internalType":"address","name":"_newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},
   {"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"vehicles","outputs":[{"internalType":"string","name":"vehicleId","type":"string"},{"internalType":"string","name":"model","type":"string"},{"internalType":"uint256","name":"year","type":"uint256"},{"internalType":"address","name":"currentOwner","type":"address"},{"internalType":"uint256","name":"registrationDate","type":"uint256"},{"internalType":"bool","name":"exists","type":"bool"}],"stateMutability":"view","type":"function"}
 ];
 
-// ─── STATE ───────────────────────────────────────────────────
-let web3, contract, account = null, admin = null;
-let vehicles = [], events = [];
-let stats = {reg:0, tx:0};
+// ═══════════════════════════════════════════════════════
+// DEMO VEHICLES — pre-loaded for testing
+// ═══════════════════════════════════════════════════════
+const DEMO_VEHICLES = [
+  {id:"MH12AB1234", model:"Tesla Model S Plaid",  year:"2023", owner:"0x71C7656EC7ab88b098defB751B7401B5f6d8976F", price:"₹8,500/day", tag:"tag-av"},
+  {id:"DL08XY9988", model:"BMW M5 Competition",   year:"2024", owner:"0x3A1f5E8B7d2c5A4E9B3c7D1e6F2a8C4b0E5D9A3", price:"₹12,000/day", tag:"tag-av"},
+  {id:"KA01MN5566", model:"Lamborghini Urus",     year:"2022", owner:"0x9B2c4E7A1f3D6e8B5C0a2F4d8E1b3A7c5E2d0F9", price:"₹22,000/day", tag:"tag-rent"},
+  {id:"GJ05PQ2233", model:"Toyota Land Cruiser",  year:"2023", owner:"0x5D3a9C1e7B2f4A8d6E0b3F7c1A5e9D2a8C4b0F6", price:"₹6,500/day", tag:"tag-av"},
+  {id:"RJ14ZZ0077", model:"Porsche 911 Turbo S",  year:"2024", owner:"0x2E8b1C4f7A3d9E6c0B5a4F8d2E1c7A3b9D5e0F4", price:"₹18,000/day", tag:"tag-av"},
+  {id:"TN09CC3344", model:"Ford Mustang GT500",   year:"2021", owner:"0x8C5e7A1b3F2d9E4c0A6b5D3f8E2a7C1b4F9e0D2", price:"₹9,000/day", tag:"tag-rent"},
+];
 
-// ─── INIT ────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let web3 = null, contract = null;
+let account = null, adminAddr = null;
+let vehicles = [...DEMO_VEHICLES];
+let evs = [];
+let sts = {r: DEMO_VEHICLES.length, t: 0};
+
+// ═══════════════════════════════════════════════════════
+// INIT — runs immediately, no MetaMask needed
+// ═══════════════════════════════════════════════════════
 window.addEventListener("DOMContentLoaded", () => {
   renderFleet();
-  renderEvents();
-  if (!window.ethereum) {
+  renderEv();
+  syncStats();
+
+  // MetaMask detection
+  if (typeof window.ethereum === "undefined") {
     const b = document.getElementById("btn-connect");
     b.textContent = "Install MetaMask 🦊";
-    b.onclick = () => window.open("https://metamask.io/download/","_blank");
-    toast("warning","MetaMask Not Found","Install MetaMask to interact with the blockchain.");
+    b.onclick = () => window.open("https://metamask.io/download/", "_blank");
     return;
   }
-  web3 = new Web3(window.ethereum);
-  window.ethereum.request({method:"eth_accounts"}).then(a => { if(a.length) onConnect(a[0]); });
-  window.ethereum.on("accountsChanged", a => a.length ? onConnect(a[0]) : onDisconnect());
+
+  // Try auto-connect if already authorized
+  try {
+    window.ethereum.request({method: "eth_accounts"})
+      .then(accs => { if (accs && accs.length > 0) onConnect(accs[0]); })
+      .catch(() => {});
+  } catch(e) {}
+
+  window.ethereum.on("accountsChanged", accs => {
+    if (accs && accs.length > 0) onConnect(accs[0]); else onDisconnect();
+  });
   window.ethereum.on("chainChanged", () => location.reload());
 });
 
-// ─── WALLET ──────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// METAMASK CONNECT
+// ═══════════════════════════════════════════════════════
 async function connectWallet() {
-  if (!window.ethereum) return toast("error","MetaMask Required","Please install MetaMask.");
+  if (typeof window.ethereum === "undefined") {
+    return toast("error", "MetaMask Not Found", "Please install MetaMask browser extension.");
+  }
+
+  const btn = document.getElementById("btn-connect");
+  btn.disabled = true;
+  btn.textContent = "Connecting…";
+
   try {
-    setLoading("btn-connect", true);
-    await switchSepolia();
-    const accs = await window.ethereum.request({method:"eth_requestAccounts"});
+    // Request accounts first — this triggers the MetaMask popup
+    const accs = await window.ethereum.request({method: "eth_requestAccounts"});
+    if (!accs || accs.length === 0) throw new Error("No accounts returned");
+
+    // Switch to Sepolia after getting accounts
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{chainId: SEPOLIA_ID}]
+      });
+    } catch(se) {
+      if (se.code === 4902) {
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [{
+            chainId: SEPOLIA_ID,
+            chainName: "Sepolia Testnet",
+            nativeCurrency: {name: "SepoliaETH", symbol: "ETH", decimals: 18},
+            rpcUrls: ["https://rpc.sepolia.org"],
+            blockExplorerUrls: ["https://sepolia.etherscan.io"]
+          }]
+        });
+      }
+      // Don't throw — connection can still work without network switch
+    }
+
     await onConnect(accs[0]);
   } catch(e) {
-    toast("error","Connection Failed", e.message || "User rejected.");
+    if (e.code === 4001) {
+      toast("warning", "Rejected", "You rejected the MetaMask connection.");
+    } else {
+      toast("error", "Connection Failed", e.message || "Could not connect MetaMask.");
+    }
   } finally {
-    setLoading("btn-connect", false);
-    const b = document.getElementById("btn-connect");
-    b.innerHTML = "🦊 Connect MetaMask";
-    b.disabled = false;
-  }
-}
-
-async function switchSepolia() {
-  try {
-    await window.ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:SEPOLIA_ID}]});
-  } catch(e) {
-    if (e.code===4902) {
-      await window.ethereum.request({method:"wallet_addEthereumChain",params:[{
-        chainId:SEPOLIA_ID,chainName:"Sepolia Testnet",
-        nativeCurrency:{name:"SepoliaETH",symbol:"ETH",decimals:18},
-        rpcUrls:["https://rpc.sepolia.org"],
-        blockExplorerUrls:["https://sepolia.etherscan.io"]
-      }]});
-    } else throw e;
+    btn.disabled = false;
+    btn.textContent = "🦊 Connect MetaMask";
   }
 }
 
 async function onConnect(acc) {
   account = acc;
   web3 = new Web3(window.ethereum);
+
   if (contractOk()) {
-    contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
-    try { admin = await contract.methods.admin().call(); } catch(_){}
-    subscribeEvents();
-    loadPastEvents();
+    try {
+      contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
+      adminAddr = await contract.methods.admin().call();
+      subEvents();
+      loadPast();
+    } catch(e) { console.warn("Contract setup:", e); }
   }
+
   updateNav();
   renderFleet();
-  toast("success","Wallet Connected 🦊", shortAddr(acc));
+  toast("success", "Wallet Connected 🦊", shortAddr(acc));
 }
 
 function onDisconnect() {
-  account = null; admin = null;
+  account = null; adminAddr = null;
   updateNav(); renderFleet();
-  toast("info","Disconnected","Wallet disconnected.");
+  toast("info", "Disconnected", "Wallet disconnected.");
 }
 
 function updateNav() {
-  const bc  = document.getElementById("btn-connect");
-  const wd  = document.getElementById("wallet-display");
-  const wa  = document.getElementById("wallet-addr");
-  const at  = document.getElementById("admin-tag");
-  const at2 = document.getElementById("admin-tag2");
-  const fc  = document.getElementById("footer-contract");
+  const bc = document.getElementById("btn-connect");
+  const wd = document.getElementById("wdisplay");
+  const wa = document.getElementById("waddr");
+  const at = document.getElementById("admin-tag");
+  const at2 = document.getElementById("atag");
 
   if (account) {
-    bc.style.display  = "none";
-    wd.style.display  = "flex";
-    wa.textContent    = shortAddr(account);
-    const isAdm = admin && account.toLowerCase() === admin.toLowerCase();
-    at.style.display  = isAdm ? "flex"  : "none";
-    at2.style.display = isAdm ? "flex"  : "none";
+    bc.style.display = "none";
+    wd.style.display = "flex";
+    wa.textContent = shortAddr(account);
+    const isAdm = adminAddr && account.toLowerCase() === adminAddr.toLowerCase();
+    at.style.display = isAdm ? "flex" : "none";
+    if (at2) at2.style.display = isAdm ? "flex" : "none";
+    const fc = document.getElementById("fc");
     if (fc && contractOk()) fc.textContent = CONTRACT_ADDRESS;
   } else {
-    bc.style.display  = "flex";
-    wd.style.display  = "none";
-    at.style.display  = "none";
-    at2.style.display = "none";
+    bc.style.display = "flex";
+    wd.style.display = "none";
+    at.style.display = "none";
+    if (at2) at2.style.display = "none";
   }
 }
 
-// ─── FLEET ───────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// FLEET
+// ═══════════════════════════════════════════════════════
 function renderFleet(filter = "") {
   const grid = document.getElementById("fleet");
   const list = filter
-    ? vehicles.filter(v => v.id.toLowerCase().includes(filter.toLowerCase()) || v.model.toLowerCase().includes(filter.toLowerCase()))
+    ? vehicles.filter(v =>
+        v.id.toLowerCase().includes(filter.toLowerCase()) ||
+        v.model.toLowerCase().includes(filter.toLowerCase()))
     : vehicles;
 
   if (!list.length) {
-    grid.innerHTML = `
-      <div class="empty">
-        <span class="empty-em">🚗</span>
-        <div class="empty-t">${vehicles.length ? "No matches found" : "No vehicles on-chain yet"}</div>
-        <div class="empty-d">${
-          !account ? "Connect your MetaMask wallet to get started." :
-          vehicles.length ? "Try a different search term." :
-          isAdm() ? "Register the first vehicle using the panel below!" :
-          "The admin can register vehicles to appear here."
-        }</div>
-      </div>`;
+    grid.innerHTML = `<div class="empty"><span class="empty-em">🚗</span><div class="empty-t">No vehicles found</div><div class="empty-d">Try a different search term.</div></div>`;
     return;
   }
-  grid.innerHTML = list.map(v => vcardHTML(v)).join("");
+  grid.innerHTML = list.map(v => vcHTML(v)).join("");
 }
 
-function vcardHTML(v) {
-  const em = carEmoji(v.model);
+function vcHTML(v) {
+  const em = emoji(v.model);
   const mine = account && v.owner && v.owner.toLowerCase() === account.toLowerCase();
+  const tag = mine ? "tag-mine" : (v.tag || "tag-av");
+  const tagLabel = mine ? "⭐ Yours" : (v.tag === "tag-rent" ? "🔵 Rented" : "● Available");
   return `
-    <div class="card vc" onclick="openDetail('${v.id}')">
-      <div class="vc-img">
-        <div class="vc-img-bg">${v.year}</div>
-        <div class="vc-em">${em}</div>
-        <span class="vc-tag ${mine ? "tag-mine" : "tag-ok"}">${mine ? "⭐ Yours" : "● Active"}</span>
+    <div class="card dc" onclick="openDetail('${v.id}')">
+      <div class="dc-img">
+        <div class="dc-yr">${v.year}</div>
+        <div class="dc-em">${em}</div>
+        <span class="dc-tag ${tag}">${tagLabel}</span>
+        ${v.price ? `<div class="dc-price">${v.price}</div>` : ""}
       </div>
-      <div class="vc-body">
-        <div class="vc-model">${v.model || "Unknown"}</div>
-        <div class="vc-meta"><span>${v.year || "—"}</span><span>·</span><span>${v.id}</span></div>
-        <div class="vc-owner">
-          <div class="vc-orb"></div>
-          <div><div class="vc-olbl">Current Owner</div><div class="vc-oaddr">${shortAddr(v.owner)}</div></div>
+      <div class="dc-body">
+        <div class="dc-model">${v.model}</div>
+        <div class="dc-meta"><span>${v.year}</span><span>·</span><span>${v.id}</span></div>
+        <div class="dc-owner">
+          <div class="dc-orb"></div>
+          <div><div class="dc-ol">Current Owner</div><div class="dc-oa">${shortAddr(v.owner)}</div></div>
         </div>
-        <div class="vc-btns">
-          <button class="btn-vc-p" onclick="event.stopPropagation();openDetail('${v.id}')">🔍 View Details</button>
+        <div class="dc-btns">
+          <button class="btn-p" onclick="event.stopPropagation();openDetail('${v.id}')">🔍 Details</button>
           ${mine
-            ? `<button class="btn-vc-s" onclick="event.stopPropagation();openTransferModal('${v.id}')">🔄 Transfer</button>`
-            : `<button class="btn-vc-s" onclick="event.stopPropagation();quickQuery('${v.id}')">📋 History</button>`
+            ? `<button class="btn-s" onclick="event.stopPropagation();openTxModal('${v.id}')">🔄 Transfer</button>`
+            : `<button class="btn-s" onclick="event.stopPropagation();qLook('${v.id}')">📋 History</button>`
           }
         </div>
       </div>
     </div>`;
 }
 
-// ─── REGISTER ────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// REGISTER
+// ═══════════════════════════════════════════════════════
 async function doRegister() {
   if (!check()) return;
-  const id    = val("r-id");
-  const year  = parseInt(val("r-year"));
-  const model = val("r-model");
-  const owner = val("r-owner");
-  if (!id || !year || !model || !owner) return toast("warning","Missing Fields","Please fill in all fields.");
-  if (!web3.utils.isAddress(owner))    return toast("error","Invalid Address","Owner is not a valid Ethereum address.");
-
-  const btn = document.getElementById("reg-btn");
-  setLoading("reg-btn", true);
+  const id = g("r-id"), yr = parseInt(g("r-yr")), mod = g("r-mod"), own = g("r-own");
+  if (!id || !yr || !mod || !own) return toast("warning", "Missing Fields", "Fill in all fields.");
+  if (!web3.utils.isAddress(own)) return toast("error", "Invalid Address", "Owner is not a valid Ethereum address.");
+  load("rbtn", true);
   try {
-    const tx = await contract.methods.registerVehicle(id, model, year, owner).send({from:account});
-    upsertVehicle({id, model, year:year.toString(), owner});
-    stats.reg++; syncStats();
-    addEvent("r",{vid:id, owner, hash:tx.transactionHash, block:tx.blockNumber});
+    const tx = await contract.methods.registerVehicle(id, mod, yr, own).send({from: account});
+    upsert({id, model: mod, year: yr.toString(), owner: own});
+    sts.r++; syncStats();
+    addEv("r", {vid: id, owner: own, hash: tx.transactionHash, block: tx.blockNumber});
     renderFleet(document.getElementById("search").value);
-    toast("success","Registered! 🎉",`${id} is now on-chain.`);
-    ["r-id","r-year","r-model","r-owner"].forEach(i => document.getElementById(i).value = "");
-  } catch(e) { toast("error","Registration Failed", parseErr(e)); }
-  finally { setLoading("reg-btn", false); }
+    toast("success", "Registered! 🎉", `${id} is now on-chain.`);
+    ["r-id","r-yr","r-mod","r-own"].forEach(i => document.getElementById(i).value = "");
+  } catch(e) { toast("error", "Failed", parseErr(e)); }
+  finally { load("rbtn", false); }
 }
 
-// ─── TRANSFER ────────────────────────────────────────────────
-async function doTransfer(vid, newOwner) {
-  vid      = vid      || val("t-id");
-  newOwner = newOwner || val("t-owner");
+// ═══════════════════════════════════════════════════════
+// TRANSFER
+// ═══════════════════════════════════════════════════════
+async function doTransfer(vid, nown) {
+  vid = vid || g("t-id"); nown = nown || g("t-own");
   if (!check()) return;
-  if (!vid || !newOwner) return toast("warning","Missing Fields","Fill in Vehicle ID and new owner.");
-  if (!web3.utils.isAddress(newOwner)) return toast("error","Invalid Address","Not a valid Ethereum address.");
-
-  setLoading("tx-btn", true);
+  if (!vid || !nown) return toast("warning", "Missing Fields", "Enter Vehicle ID and new owner.");
+  if (!web3.utils.isAddress(nown)) return toast("error", "Invalid Address", "Not a valid Ethereum address.");
+  load("tbtn", true);
   try {
-    const tx = await contract.methods.transferOwnership(vid, newOwner).send({from:account});
+    const tx = await contract.methods.transferOwnership(vid, nown).send({from: account});
     const v = vehicles.find(x => x.id === vid);
-    if (v) v.owner = newOwner;
-    stats.tx++; syncStats();
-    addEvent("t",{vid, from:account, to:newOwner, hash:tx.transactionHash, block:tx.blockNumber});
+    if (v) v.owner = nown;
+    sts.t++; syncStats();
+    addEv("t", {vid, from: account, to: nown, hash: tx.transactionHash, block: tx.blockNumber});
     renderFleet(document.getElementById("search").value);
-    toast("success","Transferred! 🔄",`${vid} → ${shortAddr(newOwner)}`);
-    ["t-id","t-owner"].forEach(i => document.getElementById(i).value = "");
-  } catch(e) { toast("error","Transfer Failed", parseErr(e)); }
-  finally { setLoading("tx-btn", false); }
+    toast("success", "Transferred! 🔄", `${vid} → ${shortAddr(nown)}`);
+    ["t-id","t-own"].forEach(i => document.getElementById(i).value = "");
+  } catch(e) { toast("error", "Failed", parseErr(e)); }
+  finally { load("tbtn", false); }
 }
 
-// ─── QUERY ───────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// QUERY
+// ═══════════════════════════════════════════════════════
 async function doQuery() {
   if (!check()) return;
-  const id = val("q-id");
-  if (!id) return toast("warning","Required","Enter a Vehicle ID.");
-  setLoading("q-btn", true);
+  const id = g("q-id");
+  if (!id) return toast("warning", "Required", "Enter a Vehicle ID.");
+  load("q-btn", true);
   try {
     const [d, hist] = await Promise.all([
       contract.methods.getVehicleDetails(id).call(),
       contract.methods.getOwnershipHistory(id).call()
     ]);
-    upsertVehicle({id:d.vehicleId, model:d.model, year:d.year.toString(), owner:d.currentOwner});
+    upsert({id: d.vehicleId, model: d.model, year: d.year.toString(), owner: d.currentOwner});
     renderFleet(document.getElementById("search").value);
-    renderDetailCard(d, hist);
-    toast("success","Vehicle Found",`Details loaded for ${id}`);
+    renderDetail(d, hist);
+    toast("success", "Found!", `Details loaded for ${id}`);
   } catch(e) {
-    document.getElementById("query-result").innerHTML = "";
-    toast("error","Query Failed", parseErr(e));
-  } finally { setLoading("q-btn", false); }
+    document.getElementById("qresult").innerHTML = "";
+    toast("error", "Not Found", parseErr(e));
+  } finally { load("q-btn", false); }
 }
 
-function renderDetailCard(d, hist) {
-  const em = carEmoji(d.model);
-  const reg = new Date(Number(d.registrationDate)*1000).toLocaleDateString("en-US",{year:"numeric",month:"short",day:"numeric"});
+function renderDetail(d, hist) {
+  const em = emoji(d.model);
+  const reg = new Date(Number(d.registrationDate) * 1000).toLocaleDateString("en-IN", {year:"numeric", month:"short", day:"numeric"});
   const mine = account && d.currentOwner.toLowerCase() === account.toLowerCase();
-
   const tl = hist.map((addr, i) => {
-    const first = i===0, cur = i===hist.length-1;
-    const cls = cur ? "tl-nc" : first ? "tl-na" : "tl-nm";
+    const first = i === 0, cur = i === hist.length - 1;
+    const cls = cur ? "tnc" : first ? "tna" : "tnm";
     const role = first && cur ? "Original & Current Owner" : cur ? "Current Owner" : first ? "Original Owner" : `Owner #${i+1}`;
-    return `
-      <div class="tl">
-        <div class="tl-n ${cls}">${i+1}</div>
-        <div class="tl-body"><div class="tl-addr">${addr}</div><div class="tl-role">${role}</div></div>
-        ${cur ? `<span class="cur-badge">● Current</span>` : ""}
-        <a href="${SCAN}/address/${addr}" target="_blank" class="tx-lnk" onclick="event.stopPropagation()">↗</a>
-      </div>`;
+    return `<div class="tli">
+      <div class="tln ${cls}">${i+1}</div>
+      <div class="tlb"><div class="tla">${addr}</div><div class="tlr">${role}</div></div>
+      ${cur ? `<span class="cb">● Current</span>` : ""}
+      <a href="${SCAN}/address/${addr}" target="_blank" class="txl" onclick="event.stopPropagation()">↗</a>
+    </div>`;
   }).join("");
-
-  document.getElementById("query-result").innerHTML = `
+  document.getElementById("qresult").innerHTML = `
     <div class="card detail">
-      <div class="detail-hero">
-        <div class="detail-yr">${d.year}</div>
-        <div class="detail-em">${em}</div>
-      </div>
-      <div class="detail-body">
-        <div class="detail-top">
-          <div>
-            <div class="detail-name">${d.model}</div>
-            <div class="detail-id">ID: ${d.vehicleId}</div>
-          </div>
-          <div class="detail-acts">
-            <a href="${SCAN}/address/${d.currentOwner}" target="_blank" class="tx-lnk">Etherscan ↗</a>
-            ${mine ? `<button class="btn btn-amber" style="padding:8px 16px;font-size:13px" onclick="openTransferModal('${d.vehicleId}')">🔄 Transfer</button>` : ""}
+      <div class="dh"><div class="dy">${d.year}</div><div class="de">${em}</div></div>
+      <div class="db">
+        <div class="dtop">
+          <div><div class="dname">${d.model}</div><div class="did">ID: ${d.vehicleId}</div></div>
+          <div class="dacts">
+            <a href="${SCAN}/address/${d.currentOwner}" target="_blank" class="txl">Etherscan ↗</a>
+            ${mine ? `<button class="btn btn-am" style="padding:7px 14px;font-size:12px" onclick="openTxModal('${d.vehicleId}')">🔄 Transfer</button>` : ""}
           </div>
         </div>
-        <div class="detail-metas">
-          <div class="dmeta"><div class="dmeta-l">Year</div><div class="dmeta-v am">${d.year}</div></div>
-          <div class="dmeta"><div class="dmeta-l">Owners</div><div class="dmeta-v am">${hist.length}</div></div>
-          <div class="dmeta"><div class="dmeta-l">Registered</div><div class="dmeta-v" style="font-size:13px">${reg}</div></div>
+        <div class="dmetas">
+          <div class="dm"><div class="dml">Year</div><div class="dmv am">${d.year}</div></div>
+          <div class="dm"><div class="dml">Owners</div><div class="dmv am">${hist.length}</div></div>
+          <div class="dm"><div class="dml">Registered</div><div class="dmv" style="font-size:12px">${reg}</div></div>
         </div>
-        <div class="sec-lbl">Current Owner</div>
-        <div class="owner-block" style="margin-bottom:18px">
-          <div class="orb"></div>
-          <div class="owner-addr">${d.currentOwner}</div>
-        </div>
-        <div class="sec-lbl">Ownership Timeline (${hist.length} record${hist.length!==1?"s":""})</div>
-        <div class="timeline">${tl}</div>
+        <div class="sl">Current Owner</div>
+        <div class="ob" style="margin-bottom:16px"><div class="orb"></div><div class="oa">${d.currentOwner}</div></div>
+        <div class="sl">Ownership Timeline (${hist.length} record${hist.length !== 1 ? "s" : ""})</div>
+        <div class="tl">${tl}</div>
       </div>
     </div>`;
 }
 
-// ─── MODAL ───────────────────────────────────────────────────
-function openTransferModal(vid) {
+// ═══════════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════════
+function openTxModal(vid) {
   const v = vehicles.find(x => x.id === vid);
-  document.getElementById("m-em").textContent   = carEmoji(v?.model || "");
-  document.getElementById("m-name").textContent = v?.model || vid;
-  document.getElementById("m-meta").textContent = `${v?.year || "—"} · ${vid}`;
-  document.getElementById("m-vid").value        = vid;
-  document.getElementById("m-newowner").value   = "";
-  document.getElementById("transfer-modal").classList.add("open");
+  document.getElementById("m-em").textContent = emoji(v?.model || "");
+  document.getElementById("m-vn").textContent = v?.model || vid;
+  document.getElementById("m-vm").textContent = `${v?.year || "—"} · ${vid}`;
+  document.getElementById("m-vid").value = vid;
+  document.getElementById("m-no").value = "";
+  document.getElementById("txmodal").classList.add("open");
   document.body.style.overflow = "hidden";
 }
 function closeModal() {
-  document.getElementById("transfer-modal").classList.remove("open");
+  document.getElementById("txmodal").classList.remove("open");
   document.body.style.overflow = "";
 }
-async function doModalTransfer() {
-  const vid   = document.getElementById("m-vid").value;
-  const owner = document.getElementById("m-newowner").value.trim();
-  if (!owner) return toast("warning","Missing Address","Enter the new owner address.");
+async function doModalTx() {
+  const vid = document.getElementById("m-vid").value;
+  const nown = document.getElementById("m-no").value.trim();
+  if (!nown) return toast("warning", "Missing", "Enter new owner address.");
   if (!check()) return;
-  if (!web3.utils.isAddress(owner)) return toast("error","Invalid","Not a valid Ethereum address.");
-  setLoading("m-tx-btn", true);
+  if (!web3.utils.isAddress(nown)) return toast("error", "Invalid", "Not a valid Ethereum address.");
+  load("m-btn", true);
   try {
-    const tx = await contract.methods.transferOwnership(vid, owner).send({from:account});
+    const tx = await contract.methods.transferOwnership(vid, nown).send({from: account});
     const v = vehicles.find(x => x.id === vid);
-    if (v) v.owner = owner;
-    stats.tx++; syncStats();
-    addEvent("t",{vid, from:account, to:owner, hash:tx.transactionHash, block:tx.blockNumber});
+    if (v) v.owner = nown;
+    sts.t++; syncStats();
+    addEv("t", {vid, from: account, to: nown, hash: tx.transactionHash, block: tx.blockNumber});
     renderFleet(document.getElementById("search").value);
     closeModal();
-    toast("success","Transferred! 🔄",`${vid} → ${shortAddr(owner)}`);
-  } catch(e) { toast("error","Transfer Failed", parseErr(e)); }
-  finally { setLoading("m-tx-btn", false); }
+    toast("success", "Transferred! 🔄", `${vid} → ${shortAddr(nown)}`);
+  } catch(e) { toast("error", "Failed", parseErr(e)); }
+  finally { load("m-btn", false); }
 }
 
-// ─── EVENTS ──────────────────────────────────────────────────
-function subscribeEvents() {
+// ═══════════════════════════════════════════════════════
+// EVENTS
+// ═══════════════════════════════════════════════════════
+function subEvents() {
   if (!contract) return;
   try {
-    contract.events.VehicleRegistered({fromBlock:"latest"}).on("data", e => {
-      stats.reg++; syncStats();
-      addEvent("r",{vid:e.returnValues.vehicleId, owner:e.returnValues.owner, hash:e.transactionHash, block:e.blockNumber});
+    contract.events.VehicleRegistered({fromBlock: "latest"}).on("data", e => {
+      sts.r++; syncStats();
+      addEv("r", {vid: e.returnValues.vehicleId, owner: e.returnValues.owner, hash: e.transactionHash, block: e.blockNumber});
     });
-    contract.events.OwnershipTransferred({fromBlock:"latest"}).on("data", e => {
-      stats.tx++; syncStats();
-      addEvent("t",{vid:e.returnValues.vehicleId, from:e.returnValues.from, to:e.returnValues.to, hash:e.transactionHash, block:e.blockNumber});
+    contract.events.OwnershipTransferred({fromBlock: "latest"}).on("data", e => {
+      sts.t++; syncStats();
+      addEv("t", {vid: e.returnValues.vehicleId, from: e.returnValues.from, to: e.returnValues.to, hash: e.transactionHash, block: e.blockNumber});
     });
-  } catch(_){}
+  } catch(e) {}
 }
-
-async function loadPastEvents() {
+async function loadPast() {
   if (!contract) return;
   try {
-    const regEv = await contract.getPastEvents("VehicleRegistered",{fromBlock:0,toBlock:"latest"});
-    for (const e of regEv) {
+    const re = await contract.getPastEvents("VehicleRegistered", {fromBlock: 0, toBlock: "latest"});
+    for (const e of re) {
       try {
         const d = await contract.methods.getVehicleDetails(e.returnValues.vehicleId).call();
-        upsertVehicle({id:d.vehicleId, model:d.model, year:d.year.toString(), owner:d.currentOwner});
-      } catch(_){}
+        upsert({id: d.vehicleId, model: d.model, year: d.year.toString(), owner: d.currentOwner});
+      } catch(_) {}
     }
-    stats.reg = regEv.length;
-    const txEv = await contract.getPastEvents("OwnershipTransferred",{fromBlock:0,toBlock:"latest"});
-    stats.tx = txEv.length;
+    const te = await contract.getPastEvents("OwnershipTransferred", {fromBlock: 0, toBlock: "latest"});
+    sts.r = Math.max(re.length, vehicles.length); sts.t = te.length;
     syncStats(); renderFleet(document.getElementById("search").value);
-  } catch(_){}
+  } catch(e) {}
 }
 
-function addEvent(type, data) {
-  events.unshift({type, data, ts: new Date()});
-  renderEvents();
-  syncStats();
+function addEv(type, data) {
+  evs.unshift({type, data, ts: new Date()});
+  renderEv(); syncStats();
 }
-
-function renderEvents() {
+function renderEv() {
   const el = document.getElementById("evfeed");
-  if (!events.length) {
-    el.innerHTML = `<div class="ev-empty"><span class="em">📡</span><p>No events yet. Connect your wallet and interact with the contract.</p></div>`;
+  if (!evs.length) {
+    el.innerHTML = `<div class="ev-empty"><span style="font-size:38px;display:block;margin-bottom:10px;opacity:.4">📡</span><p>No events yet — connect wallet and interact with the contract to see live events.</p></div>`;
     return;
   }
-  el.innerHTML = events.map(({type,data,ts}) => {
-    const isR = type==="r";
-    return `
-      <div class="evitem" onclick="openScan('tx','${data.hash}')">
-        <div class="evicon ${isR?"r":"t"}">${isR?"🚘":"🔄"}</div>
-        <div class="evbody">
-          <div class="evtitle">${isR?"Vehicle Registered":"Ownership Transferred"} — <strong>${data.vid}</strong></div>
-          <div class="evsub">${isR ? `Owner: ${data.owner||""}` : `${shortAddr(data.from)} → ${shortAddr(data.to)}`}</div>
-        </div>
-        <div class="evmeta">
-          <span class="evtime">${ts.toLocaleTimeString()}</span>
-          ${data.block ? `<span class="evblk">blk ${data.block}</span>` : ""}
-        </div>
-      </div>`;
-  }).join("");
+  el.innerHTML = evs.map(({type,data,ts}) => `
+    <div class="evi" onclick="openScan('tx','${data.hash}')">
+      <div class="evic ${type === 'r' ? 'r' : 't'}">${type === 'r' ? '🚘' : '🔄'}</div>
+      <div class="evb">
+        <div class="evt">${type === 'r' ? 'Vehicle Registered' : 'Ownership Transferred'} — <strong>${data.vid}</strong></div>
+        <div class="evs">${type === 'r' ? `Owner: ${data.owner || ''}` : `${shortAddr(data.from)} → ${shortAddr(data.to)}`}</div>
+      </div>
+      <div class="evm">
+        <span class="evtm">${ts.toLocaleTimeString()}</span>
+        ${data.block ? `<span class="evbk">blk ${data.block}</span>` : ""}
+      </div>
+    </div>`).join("");
 }
+function clearEv() { evs = []; renderEv(); syncStats(); toast("info", "Cleared", "Event log cleared."); }
 
-function clearEvents() {
-  events = []; renderEvents(); syncStats();
-  toast("info","Cleared","Event log cleared.");
-}
-
-// ─── DEMO ─────────────────────────────────────────────────────
-function loadDemo() {
-  if (vehicles.length) return toast("info","Demo","Vehicles already loaded.");
-  const demos = [
-    {id:"MH12AB1234", model:"Tesla Model S", year:"2023", owner:"0x71C7656EC7ab88b098defB751B7401B5f6d8976F"},
-    {id:"DL08XY9988", model:"BMW M5 Competition", year:"2024", owner:"0x3A1f5E8B7d2c5A4E9B3c7D1e6F2a8C4b0E5D9A3"},
-    {id:"KA01MN5566", model:"Lamborghini Urus", year:"2022", owner:"0x9B2c4E7A1f3D6e8B5C0a2F4d8E1b3A7c5E2d0F9"},
-    {id:"GJ05PQ2233", model:"Toyota Land Cruiser", year:"2023", owner:"0x5D3a9C1e7B2f4A8d6E0b3F7c1A5e9D2a8C4b0F6"},
-    {id:"RJ14ZZ0077", model:"Porsche 911 Turbo S", year:"2024", owner:"0x2E8b1C4f7A3d9E6c0B5a4F8d2E1c7A3b9D5e0F4"},
-    {id:"TN09CC3344", model:"Ford Mustang GT", year:"2021", owner:"0x8C5e7A1b3F2d9E4c0A6b5D3f8E2a7C1b4F9e0D2"},
-  ];
-  demos.forEach(upsertVehicle);
-  syncStats();
-  renderFleet(document.getElementById("search").value);
-  toast("success","Demo Loaded 🎉","6 sample vehicles added to the fleet.");
-}
-
-// ─── DETAIL / QUICK QUERY ─────────────────────────────────────
-function openDetail(vid) {
-  document.getElementById("q-id").value = vid;
-  goto("query-sec");
-  if (contractOk() && account) setTimeout(doQuery, 350);
-}
-function quickQuery(vid) { openDetail(vid); }
-
-// ─── UTILS ───────────────────────────────────────────────────
-function goto(id) { document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"}); }
-function val(id)  { return (document.getElementById(id)?.value || "").trim(); }
-
-function shortAddr(a) {
-  if (!a || a.length < 10) return a || "N/A";
-  return a.slice(0,6) + "…" + a.slice(-4);
-}
-function isAdm() { return admin && account && account.toLowerCase() === admin.toLowerCase(); }
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+function go(id) { document.getElementById(id)?.scrollIntoView({behavior: "smooth", block: "start"}); }
+function g(id)  { return (document.getElementById(id)?.value || "").trim(); }
+function shortAddr(a) { return (!a || a.length < 10) ? (a || "N/A") : a.slice(0,6) + "…" + a.slice(-4); }
 function contractOk() { return CONTRACT_ADDRESS !== "0x0000000000000000000000000000000000000000"; }
-
 function check() {
-  if (!account) { toast("warning","Not Connected","Connect your MetaMask wallet first."); return false; }
-  if (!contractOk()) { toast("error","Contract Not Set","Update CONTRACT_ADDRESS in app.js after deploying via Remix."); return false; }
+  if (!account) { toast("warning", "Not Connected", "Connect your MetaMask wallet first."); return false; }
+  if (!contractOk()) { toast("error", "Contract Not Set", "Update CONTRACT_ADDRESS in this file after deploying via Remix."); return false; }
   return true;
 }
-
-function upsertVehicle(v) {
+function upsert(v) {
   const i = vehicles.findIndex(x => x.id === v.id);
-  if (i>=0) Object.assign(vehicles[i], v); else vehicles.unshift(v);
+  if (i >= 0) Object.assign(vehicles[i], v); else vehicles.unshift(v);
 }
-
 function syncStats() {
-  document.getElementById("s-vehicles").textContent = vehicles.length;
-  document.getElementById("s-reg").textContent      = stats.reg;
-  document.getElementById("s-tx").textContent       = stats.tx;
-  document.getElementById("s-ev").textContent       = events.length;
+  document.getElementById("s-v").textContent = vehicles.length;
+  document.getElementById("s-r").textContent = sts.r;
+  document.getElementById("s-t").textContent = sts.t;
+  document.getElementById("s-e").textContent = evs.length;
 }
-
-function setLoading(id, on) {
+function load(id, on) {
   const b = document.getElementById(id);
   if (!b) return;
   b.disabled = on;
@@ -1305,44 +1000,44 @@ function setLoading(id, on) {
   const s = b.querySelector(".spin");
   if (s) s.style.display = on ? "inline-block" : "none";
 }
-
 function parseErr(e) {
   const m = e?.data?.message || e?.message || "";
-  if (m.includes("not the admin"))         return "Only the admin can register vehicles.";
-  if (m.includes("not the current owner")) return "You are not the current vehicle owner.";
+  if (m.includes("not the admin"))         return "Only the admin can do this.";
+  if (m.includes("not the current owner")) return "You are not the current owner.";
   if (m.includes("already registered"))    return "This Vehicle ID is already registered.";
   if (m.includes("does not exist"))        return "Vehicle ID not found on-chain.";
-  if (m.includes("User denied"))           return "Transaction cancelled in MetaMask.";
-  if (m.includes("Cannot transfer to"))    return "Cannot transfer to yourself.";
-  return m.length > 120 ? m.slice(0,120)+"…" : m || "Unknown error.";
+  if (m.includes("User denied") || m.includes("rejected")) return "Transaction cancelled in MetaMask.";
+  return m.length > 100 ? m.slice(0,100) + "…" : m || "Unknown error.";
+}
+function openScan(type, hash) { if (hash) window.open(`${SCAN}/${type}/${hash}`, "_blank"); }
+function openDetail(vid) {
+  document.getElementById("q-id").value = vid;
+  go("query-sec");
+  if (contractOk() && account) setTimeout(doQuery, 350);
+}
+function qLook(vid) { openDetail(vid); }
+
+// EMOJI mapping
+const EM = ["🚗","🚕","🚙","🏎️","🛻","🚌"];
+function emoji(m = "") {
+  const l = m.toLowerCase();
+  if (l.includes("lambo") || l.includes("porsche") || l.includes("ferrari") || l.includes("sport") || l.includes("mustang") || l.includes("m5") || l.includes("m3")) return "🏎️";
+  if (l.includes("tesla") || l.includes("bmw") || l.includes("merc") || l.includes("audi") || l.includes("model")) return "🚗";
+  if (l.includes("suv") || l.includes("land") || l.includes("jeep") || l.includes("cruiser") || l.includes("urus")) return "🚙";
+  if (l.includes("truck") || l.includes("pickup")) return "🛻";
+  if (l.includes("bus")) return "🚌";
+  return EM[Math.abs([...m].reduce((a,c) => a + c.charCodeAt(0), 0)) % EM.length];
 }
 
-function openScan(type, hash) {
-  if (!hash) return;
-  window.open(`${SCAN}/${type}/${hash}`, "_blank");
-}
-
-const EMOJIS = ["🚗","🚕","🚙","🏎️","🚐","🛻","🚌"];
-function carEmoji(model = "") {
-  const m = model.toLowerCase();
-  if (m.includes("truck") || m.includes("pickup") || m.includes("land")) return "🛻";
-  if (m.includes("bus"))  return "🚌";
-  if (m.includes("sport") || m.includes("ferrari") || m.includes("lambo") || m.includes("porsche") || m.includes("mustang")) return "🏎️";
-  if (m.includes("suv")  || m.includes("jeep") || m.includes("toyota") || m.includes("ford")) return "🚙";
-  if (m.includes("bmw")  || m.includes("mercedes") || m.includes("tesla") || m.includes("audi")) return "🚗";
-  if (m.includes("taxi")) return "🚕";
-  return EMOJIS[Math.abs([...model].reduce((a,c)=>a+c.charCodeAt(0),0)) % EMOJIS.length];
-}
-
-// Toast
-function toast(type, title, msg, ms=5000) {
-  const icons={success:"✅",error:"❌",warning:"⚠️",info:"ℹ️"};
+// TOAST
+function toast(type, title, msg, ms = 5000) {
+  const icons = {success:"✅",error:"❌",warning:"⚠️",info:"ℹ️"};
   const el = document.createElement("div");
   el.className = `toast ${type}`;
   el.innerHTML = `<span class="ti">${icons[type]}</span><div><div class="tt">${title}</div><div class="tm">${msg}</div></div>`;
   document.getElementById("toasts").appendChild(el);
-  el.onclick = () => { el.classList.add("out"); setTimeout(()=>el.remove(),350); };
-  setTimeout(()=>{ el.classList.add("out"); setTimeout(()=>el.remove(),350); }, ms);
+  el.onclick = () => { el.classList.add("out"); setTimeout(() => el.remove(), 350); };
+  setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 350); }, ms);
 }
 </script>
 </body>
