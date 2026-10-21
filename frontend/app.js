@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────────
 // ⚠️  UPDATE AFTER REMIX DEPLOYMENT
 // ─────────────────────────────────────────────────────────────────
-const CONTRACT_ADDRESS  = "0x0000000000000000000000000000000000000000"; // ← Paste your deployed address
+const CONTRACT_ADDRESS  = "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"; // ← Paste your deployed address
 const SEPOLIA_CHAIN_ID  = "0xaa36a7";
 const ETHERSCAN_BASE    = "https://sepolia.etherscan.io";
 
